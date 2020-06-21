@@ -7,6 +7,7 @@ import lombok.extern.log4j.Log4j2;
 import net.golem.raknet.RakNetServer;
 import net.golem.raknet.enums.PacketReliability;
 import net.golem.raknet.protocol.DataPacket;
+import net.golem.raknet.protocol.connected.ConnectedPingPacket;
 import net.golem.raknet.session.codec.PacketDecodeLayer;
 import net.golem.raknet.session.codec.PacketEncodeLayer;
 
@@ -22,6 +23,7 @@ public class RakNetSession {
 	 */
 	enum TimeUnits {
 		UPDATE(10),
+		PING(1000 * 2),
 		STALE(1000 * 5),
 		TIMEOUT(1000 * 30);
 
@@ -43,12 +45,13 @@ public class RakNetSession {
 
 	private InetSocketAddress address;
 
-	private SessionState state;
+	private SessionState state = SessionState.INITIALIZING;
 
 	private NioEventLoopGroup worker = new NioEventLoopGroup();
 
 	private ArrayList<SessionListener> listeners = new ArrayList<>();
 
+	private long lastPingTime = System.currentTimeMillis();
 	private long lastReceivedTime = System.currentTimeMillis();
 
 	private PacketDecodeLayer decodeLayer = new PacketDecodeLayer(this);
@@ -131,22 +134,21 @@ public class RakNetSession {
 	}
 
 	public void handleListeners(DataPacket packet) {
-		listeners.forEach(listener -> listener.handlePacket(packet));
+		listeners.forEach(listener -> listener.onPacket(packet));
 	}
 
-	public void sendPacket(DataPacket packet, PacketReliability reliability, boolean immediate) {
+	public void sendPacket(DataPacket packet) {
 		if(this.isClosed()) {
 			return;
 		}
 		this.getContext().writeAndFlush(new DatagramPacket(packet.create(), this.getAddress()));
 	}
 
-	public void sendPacket(DataPacket packet, boolean immediate) {
-		sendPacket(packet, PacketReliability.UNRELIABLE, immediate);
-	}
-
-	public void sendPacket(DataPacket packet) {
-		sendPacket(packet, false);
+	public void ping() {
+		ConnectedPingPacket pk = new ConnectedPingPacket();
+		pk.pingTime = server.getRakNetTimeMS();
+		lastPingTime = System.currentTimeMillis();
+		encodeLayer.sendEncapsulatedPacket(pk);
 	}
 
 	public void handle(DataPacket packet) {
@@ -157,8 +159,7 @@ public class RakNetSession {
 		if(isClosed()) {
 			return;
 		}
-		long currentTime = System.currentTimeMillis();
-		update(currentTime);
+		update(System.currentTimeMillis());
 	}
 
 	public void updateReceivedTime() {
@@ -178,6 +179,10 @@ public class RakNetSession {
 			return;
 		}
 
+		if(currentTime - lastPingTime > TimeUnits.PING.getLength()) {
+			this.ping();
+		}
+
 		decodeLayer.update(currentTime);
 		encodeLayer.update(currentTime);
 	}
@@ -192,6 +197,7 @@ public class RakNetSession {
 		decodeLayer.close();
 		encodeLayer.close();
 		worker.shutdownGracefully();
+		listeners.forEach(SessionListener::onClose);
 		setClosed(true);
 	}
 
@@ -199,4 +205,7 @@ public class RakNetSession {
 		close("Unknown");
 	}
 
+	public void disconnect() {
+		setState(SessionState.DISCONNECTED);
+	}
 }

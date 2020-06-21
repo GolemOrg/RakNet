@@ -19,4 +19,12 @@ public class RawPacket extends DataPacket {
 	public void decode(PacketDecoder decoder) {
 		buffer = decoder.readRemaining();
 	}
+
+	@Override
+	public String toString() {
+		return "RawPacket{" +
+				"packetId= " + packetId +
+				"buffer=" + buffer.toString() +
+				'}';
+	}
 }

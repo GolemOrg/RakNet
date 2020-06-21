@@ -21,7 +21,7 @@ public abstract class DataPacket implements Packet {
 	}
 
 	public void decodeHeader(PacketDecoder decoder) {
-		packetId = decoder.readByte();
+		packetId = decoder.readUnsignedByte();
 	}
 
 	@Override
@@ -38,5 +38,12 @@ public abstract class DataPacket implements Packet {
 
 	public ByteBuf create() {
 		return write(new PacketEncoder());
+	}
+
+	@Override
+	public String toString() {
+		return "DataPacket{" +
+				"packetId=" + packetId +
+				'}';
 	}
 }

@@ -2,19 +2,19 @@ package net.golem.raknet.protocol.datagram;
 
 public class SplitPacketInfo {
 
-	public int splitId;
+	public short splitId;
 
 	public int splitIndex;
 
 	public int splitCount;
 
-	public SplitPacketInfo(int splitId, int splitIndex, int splitCount) {
+	public SplitPacketInfo(short splitId, int splitIndex, int splitCount) {
 		this.splitId = splitId;
 		this.splitIndex = splitIndex;
 		this.splitCount = splitCount;
 	}
 
-	public int getSplitId() {
+	public short getSplitId() {
 		return splitId;
 	}
 

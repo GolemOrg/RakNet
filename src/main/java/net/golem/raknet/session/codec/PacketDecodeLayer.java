@@ -3,31 +3,27 @@ package net.golem.raknet.session.codec;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import lombok.extern.log4j.Log4j2;
-import net.golem.raknet.protocol.AcknowledgePacket;
-import net.golem.raknet.protocol.DataPacket;
-import net.golem.raknet.protocol.RakNetPacketFactory;
-import net.golem.raknet.protocol.RawPacket;
+import net.golem.raknet.protocol.*;
 import net.golem.raknet.protocol.connected.ConnectedPingPacket;
 import net.golem.raknet.protocol.connected.ConnectedPongPacket;
 import net.golem.raknet.protocol.connected.DisconnectionNotificationPacket;
+import net.golem.raknet.protocol.connected.NewIncomingConnectionPacket;
 import net.golem.raknet.protocol.connected.connection.ConnectionRequestAcceptedPacket;
 import net.golem.raknet.protocol.connected.connection.ConnectionRequestPacket;
 import net.golem.raknet.protocol.datagram.EncapsulatedPacket;
 import net.golem.raknet.protocol.datagram.RakNetDatagram;
 import net.golem.raknet.protocol.datagram.SplitPacketInfo;
 import net.golem.raknet.session.RakNetSession;
+import net.golem.raknet.session.SessionState;
 
-import java.util.Arrays;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Log4j2
 public class PacketDecodeLayer implements CodecLayer {
 
 	private Set<Integer> ackQueue = new TreeSet<>();
-
-	private ConcurrentHashMap<Integer, EncapsulatedPacket[]> splitPackets = new ConcurrentHashMap<>();
+	private Set<Integer> nakQueue = new TreeSet<>();
 
 	private int highestSequenceNumber = 0;
 
@@ -44,17 +40,28 @@ public class PacketDecodeLayer implements CodecLayer {
 	@Override
 	public void update(long currentTime) {
 
-		if(ackQueue.size() > 0) {
-			AcknowledgePacket pk = AcknowledgePacket.createACK();
-			pk.records = ackQueue;
-			getSession().sendPacket(pk);
-			ackQueue.clear();
-		}
+		checkQueues();
 	}
 
 	@Override
 	public void close() {
 
+	}
+
+	public void checkQueues() {
+		if(ackQueue.size() > 0) {
+			AcknowledgePacket pk = AcknowledgePacket.createACK();
+			pk.records = ackQueue;
+			session.sendPacket(pk);
+			ackQueue.clear();
+		}
+
+		if(nakQueue.size() > 0) {
+			AcknowledgePacket pk = AcknowledgePacket.createNAK();
+			pk.records = nakQueue;
+			session.sendPacket(pk);
+			nakQueue.clear();
+		}
 	}
 
 	public void handleIncoming(DataPacket packet) {
@@ -76,80 +83,35 @@ public class PacketDecodeLayer implements CodecLayer {
 	}
 
 	public void handleACK(AcknowledgePacket packet) {
+
 	}
 
 	public void handleNAK(AcknowledgePacket packet) {
 
 	}
 
-	public void onConnectedPing(ConnectedPingPacket packet) {
-		ConnectedPongPacket pk = new ConnectedPongPacket();
-		pk.pingTime = packet.pingTime;
-		pk.pongTime = session.getServer().getRakNetTimeMS();
-	}
-
-	public void handleDatagram(RakNetDatagram packet) {
-		ackQueue.add(packet.sequenceNumber);
-		if(packet.sequenceNumber > highestSequenceNumber) {
-			highestSequenceNumber = packet.sequenceNumber;
-		}
-		for(EncapsulatedPacket pk : packet.packets) {
-			handleEncapsulated(pk);
+	public void handleDatagram(RakNetDatagram datagram) {
+		ackQueue.add(datagram.sequenceIndex);
+		if(datagram.sequenceIndex > highestSequenceNumber) highestSequenceNumber = datagram.sequenceIndex;
+		for(EncapsulatedPacket packet : datagram.packets) {
+			handleEncapsulated(packet);
 		}
 	}
 
 	public void handleEncapsulated(EncapsulatedPacket packet) {
-		if(packet.splitInfo != null) {
-			EncapsulatedPacket pk = handleSplit(packet);
-			if(pk == null) {
-				return;
-			}
-			packet = pk;
+		DataPacket pk = RakNetPacketFactory.from(packet.buffer);
+		if(pk instanceof RawPacket) {
+			log.error("Unknown data packet: {}", pk);
+			return;
 		}
-		ByteBuf buffer = packet.buffer.copy();
-		try {
-			DataPacket pk = RakNetPacketFactory.from(buffer);
-			if(!handle(pk)) {
-				session.handle(pk);
-				session.handleListeners(pk);
-			}
-		} finally {
-			buffer.release();
-		}
+		handle(pk);
 	}
 
-	public EncapsulatedPacket handleSplit(EncapsulatedPacket packet) {
-		SplitPacketInfo info = packet.splitInfo;
-		if(info == null) {
-			log.error("Encapsulated packet does not contain split info!");
-			return null;
-		}
-
-		int index = info.splitIndex;
-		int count = info.splitCount;
-
-		EncapsulatedPacket[] split = splitPackets.getOrDefault(info.splitId, new EncapsulatedPacket[count]);
-		split[index] = packet;
-
-		splitPackets.put(info.splitId, split);
-
-		for(EncapsulatedPacket part : split) {
-			if(part == null) {
-				// not finished assembling the packet yet
-				return null;
-			}
-		}
-		EncapsulatedPacket pk = new EncapsulatedPacket();
-		pk.buffer = Unpooled.buffer();
-		pk.reliability = packet.reliability;
-		pk.messageIndex = packet.messageIndex;
-		pk.sequenceIndex = packet.sequenceIndex;
-		pk.orderIndex = packet.orderIndex;
-		pk.orderChannel = packet.orderChannel;
-
-		Arrays.stream(split).forEach(encapsulated -> pk.buffer.writeBytes(encapsulated.buffer));
-		splitPackets.remove(index);
-		return pk;
+	public void onConnectedPing(ConnectedPingPacket packet) {
+		ConnectedPongPacket pk = new ConnectedPongPacket();
+		pk.pingTime = packet.pingTime;
+		pk.pongTime = session.getServer().getRakNetTimeMS();
+		session.getEncodeLayer().sendEncapsulatedPacket(pk);
 	}
 
 	public void handleRaw(RawPacket packet) {
@@ -168,11 +130,19 @@ public class PacketDecodeLayer implements CodecLayer {
 			pk.clientAddress = session.getAddress();
 			pk.pingTime = ((ConnectionRequestPacket) packet).pingTime;
 			pk.pongTime = session.getServer().getRakNetTimeMS();
+
 			session.getEncodeLayer().sendEncapsulatedPacket(pk);
+			session.setState(SessionState.CONNECTING);
 			return true;
 		}
 		if(packet instanceof ConnectedPingPacket) {
-			this.onConnectedPing((ConnectedPingPacket) packet);
+			onConnectedPing((ConnectedPingPacket) packet);
+			return true;
+		}
+
+		if(packet instanceof NewIncomingConnectionPacket) {
+			// do something here
+			return true;
 		}
 		return false;
 	}

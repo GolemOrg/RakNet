@@ -4,6 +4,9 @@ import net.golem.raknet.protocol.DataPacket;
 
 public interface SessionListener {
 
-	void handlePacket(DataPacket packet);
+	void onPacket(DataPacket packet);
+
+	void onClose();
+
 
 }

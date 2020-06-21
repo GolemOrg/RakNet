@@ -10,65 +10,30 @@ import net.golem.raknet.enums.PacketReliability;
 public class EncapsulatedPacket {
 
 	private static final int RELIABILITY_SHIFT = 5;
-	private static final byte RELIABILITY_FLAGS = (byte) (0b111 << RELIABILITY_SHIFT);
+	private static final int RELIABILITY_FLAGS = 0b111 << RELIABILITY_SHIFT;
 
-	private static final byte SPLIT_FLAG = 0b00010000;
+	private static final int SPLIT_FLAG = 0b00010000;
 
-	/**
-	 * Reliability of the packet
-	 */
 	public PacketReliability reliability;
-	/**
-	 * Message & sequence indexes
-	 */
-	public int messageIndex;
-	public int sequenceIndex;
-	/**
-	 * Ordering index & channel
-	 */
-	public int orderIndex;
-	public int orderChannel;
+
+	public int messageIndex = -1;
+	public int sequenceIndex = -1;
+
+	public int orderIndex = -1;
+	public int orderChannel = -1;
 
 	public SplitPacketInfo splitInfo;
 
 	public ByteBuf buffer;
 
-	public int identifierACK;
-
-	public void decode(PacketDecoder decoder) {
-		byte flags = decoder.readByte();
-		reliability = PacketReliability.from((flags & RELIABILITY_FLAGS) >> RELIABILITY_SHIFT);
-
-		boolean hasSplit = (flags & SPLIT_FLAG) != 0;
-		int length = decoder.readUnsignedShort() / Byte.SIZE;
-
-
-		if(reliability.isReliable()) {
-			this.messageIndex = decoder.readUnsignedMediumLE();
-		}
-
-		if(reliability.isSequenced()) {
-			this.sequenceIndex = decoder.readUnsignedMediumLE();
-		}
-
-		if(reliability.isSequenced() || reliability.isOrdered()) {
-			this.orderIndex = decoder.readUnsignedMediumLE();
-			this.orderChannel = decoder.readUnsignedByte();
-		}
-
-		if(hasSplit) {
-			int splitCount = decoder.readInt();
-			int splitId = decoder.readUnsignedShort();
-			int splitIndex = decoder.readInt();
-
-			this.splitInfo = new SplitPacketInfo(splitId, splitIndex, splitCount);
-		}
-
-		buffer = decoder.readSlice(length);
-	}
+	public int identifierACK = -1;
 
 	public void encode(PacketEncoder encoder) {
-		encoder.writeByte((byte) (reliability.getId() << 5));
+		int flags = reliability.getId() << RELIABILITY_SHIFT;
+		if(splitInfo != null) {
+			flags |= SPLIT_FLAG;
+		}
+		encoder.writeByte(flags);
 		encoder.writeShort((short) (buffer.writerIndex() << 3));
 
 		if(reliability.isReliable()) {
@@ -79,41 +44,70 @@ public class EncapsulatedPacket {
 			encoder.writeMediumLE(sequenceIndex);
 		}
 
-		if(reliability.isOrdered()) {
+		if(reliability.isSequenced() || reliability.isOrdered()) {
 			encoder.writeMediumLE(orderIndex);
-			encoder.writeByte((byte) orderChannel);
+			encoder.writeByte(orderChannel);
 		}
 
 		if(splitInfo != null) {
-			encoder.writeInt(splitInfo.getSplitCount());
-			encoder.writeShort((short) splitInfo.getSplitId());
-			encoder.writeInt(splitInfo.getSplitIndex());
+			encoder.writeInt(splitInfo.splitCount);
+			encoder.writeShort(splitInfo.splitId);
+			encoder.writeInt(splitInfo.splitIndex);
 		}
-		encoder.getBuffer().writeBytes(buffer);
+
+		encoder.writeBytes(buffer);
+
+		try {
+			buffer.release();
+		} catch (Exception ignored) {}
+	}
+
+
+	public void decode(PacketDecoder decoder) {
+		int flags = decoder.readUnsignedByte();
+		reliability = PacketReliability.from((flags & RELIABILITY_FLAGS) >> RELIABILITY_SHIFT);
+
+		boolean split = (flags & SPLIT_FLAG) > 0;
+
+		int length = (int) Math.ceil(decoder.readShort() / (float) Byte.SIZE);
+
+		if(length == 0) {
+			log.error("Encapsulated payload length cannot be zero");
+			return;
+		}
+
+		if(reliability.isReliable()) {
+			messageIndex = decoder.readMediumLE();
+		}
+
+		if(reliability.isSequenced()) {
+			sequenceIndex = decoder.readMediumLE();
+		}
+
+		if(reliability.isSequenced() || reliability.isOrdered()) {
+			orderIndex = decoder.readMediumLE();
+			orderChannel = decoder.readByte();
+		}
+
+		if(split) {
+			int splitCount = decoder.readInt();
+			short splitId = decoder.readShort();
+			int splitIndex = decoder.readInt();
+			splitInfo = new SplitPacketInfo(splitId, splitIndex, splitCount);
+		}
+
+		buffer = decoder.readSlice(length);
 	}
 
 	public int length() {
 		return
-				1 + // reliability
-				2 + // length
-				(this.reliability.isReliable() ? 3 : 0) +  // message index
-				(this.reliability.isSequenced() ? 3 : 0) + // sequence index
-				(this.reliability.isSequenced() || this.reliability.isOrdered() ? 3 + 1 : 0) + // order index (3) + order channel (1)
-				(this.splitInfo != null ? 4 + 2 + 4 : 0) + // split count (4) + split ID (2) + split index (4)
-				this.buffer.writerIndex();
+			1 + // reliability
+			2 + // length
+			(reliability.isReliable() ? 3 : 0) + // message index
+			(reliability.isSequenced() ? 3 : 0) + // sequence index
+			(reliability.isSequenced() || reliability.isOrdered() ? 3 + 1 : 0) + // order index (3) + order channel (1)
+			(splitInfo != null ? 4 + 2 + 4 : 0) + // split count (4) + split ID (2) + split index (4)
+			buffer.writerIndex();
 	}
 
-	@Override
-	public String toString() {
-		return "EncapsulatedPacket{" +
-				"reliability=" + reliability +
-				", messageIndex=" + messageIndex +
-				", sequenceIndex=" + sequenceIndex +
-				", orderIndex=" + orderIndex +
-				", orderChannel=" + orderChannel +
-				", splitInfo=" + splitInfo +
-				", buffer=" + (buffer.hasArray() ? buffer.array() : buffer) +
-				", identifierACK=" + identifierACK +
-				'}';
-	}
 }

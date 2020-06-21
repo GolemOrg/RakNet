@@ -37,7 +37,7 @@ public class RakNetServer {
 
 
 	public RakNetServer(String host, int port, Identifier identifier) {
-		this(host, port, identifier, true);
+		this(host, port, identifier, false);
 	}
 
 	public RakNetServer(String host, int port, Identifier identifier, boolean verbose) {
@@ -92,8 +92,7 @@ public class RakNetServer {
 									new OpenConnectionRequest1Handler(RakNetServer.this),
 									new OpenConnectionRequest2Handler(RakNetServer.this)
 							);
-
-							log.info("Created channel handlers");
+							if(verbose) log.info("Created channel handlers");
 						}
 					})
 					.bind(getLocalAddress().getAddress(), getLocalAddress().getPort())

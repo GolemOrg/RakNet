@@ -1,9 +1,6 @@
 package net.golem.raknet.session.codec;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.socket.DatagramPacket;
 import lombok.extern.log4j.Log4j2;
-import net.golem.raknet.enums.PacketPriority;
 import net.golem.raknet.enums.PacketReliability;
 import net.golem.raknet.protocol.DataPacket;
 import net.golem.raknet.protocol.datagram.EncapsulatedPacket;
@@ -12,6 +9,7 @@ import net.golem.raknet.session.RakNetSession;
 
 import javax.annotation.Nonnegative;
 import java.util.ArrayList;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Log4j2
@@ -20,6 +18,8 @@ public class PacketEncodeLayer implements CodecLayer {
 	protected ConcurrentLinkedQueue<EncapsulatedPacket> packetQueue = new ConcurrentLinkedQueue<>();
 
 	private int sequenceNumber = 0;
+
+	private TreeMap<Integer, ArrayList<Integer>> awaitingAcks = new TreeMap<>();
 
 	private RakNetSession session;
 
@@ -31,38 +31,36 @@ public class PacketEncodeLayer implements CodecLayer {
 		return session;
 	}
 
-	public void sendEncapsulatedPacket(DataPacket packet, PacketReliability reliability, PacketPriority priority, @Nonnegative int orderChannel) {
-		if(session.isClosed()) {
-			return;
-		}
-		EncapsulatedPacket encapsulated = new EncapsulatedPacket();
-		encapsulated.reliability = reliability;
-		encapsulated.orderChannel = orderChannel;
-		encapsulated.buffer = packet.create();
-		if(priority != PacketPriority.IMMEDIATE) {
-			packetQueue.add(encapsulated);
-		} else {
+	public void sendEncapsulatedPacket(DataPacket packet, PacketReliability reliability, @Nonnegative int orderChannel, boolean immediate) {
+		EncapsulatedPacket pk = new EncapsulatedPacket();
+		pk.reliability = reliability;
+		pk.orderChannel = orderChannel;
+		pk.buffer = packet.create();
+		if(immediate) {
 			RakNetDatagram datagram = new RakNetDatagram();
-			datagram.packets.add(encapsulated);
+			datagram.packets.add(pk);
+			datagram.sequenceIndex = sequenceNumber++;
 			sendDatagram(datagram);
+		} else {
+			packetQueue.add(pk);
 		}
 	}
 
-	public void sendEncapsulatedPacket(DataPacket packet, PacketReliability reliability, PacketPriority priority) {
-		sendEncapsulatedPacket(packet, reliability, priority, 0);
+	public void sendEncapsulatedPacket(DataPacket packet, PacketReliability reliability, int orderChannel) {
+		sendEncapsulatedPacket(packet, reliability, orderChannel, true);
 	}
 
 	public void sendEncapsulatedPacket(DataPacket packet, PacketReliability reliability) {
-		sendEncapsulatedPacket(packet, reliability, PacketPriority.IMMEDIATE);
+		sendEncapsulatedPacket(packet, reliability, 0);
 	}
 
 	public void sendEncapsulatedPacket(DataPacket packet) {
 		sendEncapsulatedPacket(packet, PacketReliability.UNRELIABLE);
 	}
 
+
 	public void sendDatagram(RakNetDatagram datagram) {
-		datagram.sequenceNumber = sequenceNumber++;
-		session.getContext().writeAndFlush(new DatagramPacket(datagram.create(), getSession().getAddress()));
+		session.sendPacket(datagram);
 	}
 
 
@@ -80,7 +78,7 @@ public class PacketEncodeLayer implements CodecLayer {
 		if(packetQueue.size() > 0) {
 			RakNetDatagram datagram = new RakNetDatagram();
 			datagram.packets = new ArrayList<>(datagram.packets);
-			sendDatagram(datagram);
+
 			packetQueue.clear();
 		}
 	}

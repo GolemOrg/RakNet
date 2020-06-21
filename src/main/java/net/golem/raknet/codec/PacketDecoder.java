@@ -104,6 +104,10 @@ public class PacketDecoder {
 		return buffer.readerIndex();
 	}
 
+	public void resetReaderIndex() {
+		buffer.resetReaderIndex();
+	}
+
 	public int readableBytes() {
 		return buffer.readableBytes();
 	}
