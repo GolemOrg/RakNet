@@ -8,6 +8,7 @@ import net.golem.raknet.protocol.DataPacket;
 import net.golem.raknet.protocol.RakNetPacketIds;
 
 import java.net.InetSocketAddress;
+import java.util.Arrays;
 
 public class ConnectionRequestAcceptedPacket extends DataPacket {
 
@@ -44,5 +45,15 @@ public class ConnectionRequestAcceptedPacket extends DataPacket {
 		}
 		pingTime = decoder.readLong();
 		pongTime = decoder.readLong();
+	}
+
+	@Override
+	public String toString() {
+		return "ConnectionRequestAcceptedPacket{" +
+				"clientAddress=" + clientAddress +
+				", addresses=" + Arrays.toString(addresses) +
+				", pingTime=" + pingTime +
+				", pongTime=" + pongTime +
+				'}';
 	}
 }

@@ -26,4 +26,12 @@ public class ConnectedPongPacket extends DataPacket {
 		pingTime = decoder.readLong();
 		pongTime = decoder.readLong();
 	}
+
+	@Override
+	public String toString() {
+		return "ConnectedPongPacket{" +
+				"pingTime=" + pingTime +
+				", pongTime=" + pongTime +
+				'}';
+	}
 }

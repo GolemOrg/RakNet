@@ -30,4 +30,13 @@ public class ConnectionRequestPacket extends DataPacket {
 		pingTime = decoder.readLong();
 		useSecurity = decoder.readBoolean();
 	}
+
+	@Override
+	public String toString() {
+		return "ConnectionRequestPacket{" +
+				"clientId=" + clientId +
+				", pingTime=" + pingTime +
+				", useSecurity=" + useSecurity +
+				'}';
+	}
 }

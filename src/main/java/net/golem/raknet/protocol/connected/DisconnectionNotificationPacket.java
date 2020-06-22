@@ -16,4 +16,11 @@ public class DisconnectionNotificationPacket extends DataPacket {
 
 	@Override
 	public void decode(PacketDecoder decoder) {}
+
+	@Override
+	public String toString() {
+		return "DisconnectionNotificationPacket{" +
+				"packetId=" + packetId +
+				'}';
+	}
 }

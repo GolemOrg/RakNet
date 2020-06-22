@@ -3,6 +3,7 @@ package net.golem.raknet.codec;
 import io.netty.buffer.ByteBuf;
 import net.golem.raknet.RakNetAddressUtils;
 import net.golem.raknet.RakNetConstants;
+import net.golem.raknet.utils.ByteBufUtils;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -108,6 +109,10 @@ public class PacketDecoder {
 		buffer.resetReaderIndex();
 	}
 
+	public int writerIndex() {
+		return buffer.writerIndex();
+	}
+
 	public int readableBytes() {
 		return buffer.readableBytes();
 	}
@@ -133,12 +138,12 @@ public class PacketDecoder {
 			if(type == RakNetAddressUtils.IPV4) {
 				addressBytes = new byte[RakNetAddressUtils.IPV4_ADDRESS_LENGTH];
 				for(int i = 0; i < addressBytes.length; i++) addressBytes[i] = (byte) (~this.readByte() & 0xFF);
-				port = this.readShort();
+				port = this.readUnsignedShort();
 			} else if(type == RakNetAddressUtils.IPV6) {
 				this.readShort(); // AF_INET6
-				port = this.readShort();
+				port = this.readUnsignedShort();
 				this.readInt(); // Flow Info
-				addressBytes = this.readBytes(RakNetAddressUtils.IPV6_ADDRESS_LENGTH).array();
+				addressBytes = ByteBufUtils.array(this.readBytes(RakNetAddressUtils.IPV6_ADDRESS_LENGTH));
 				this.readInt(); // Scope ID
 			} else {
 				throw new Exception(String.format("Unknown address type %s", type));

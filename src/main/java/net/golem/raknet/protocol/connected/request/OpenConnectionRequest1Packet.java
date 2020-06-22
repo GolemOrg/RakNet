@@ -31,4 +31,12 @@ public class OpenConnectionRequest1Packet extends DataPacket {
 		this.maximumTransferUnits = (short) (decoder.readableBytes() + MTU_PADDING);
 		decoder.skipReadable();
 	}
+
+	@Override
+	public String toString() {
+		return "OpenConnectionRequest1Packet{" +
+				"networkProtocol=" + networkProtocol +
+				", maximumTransferUnits=" + maximumTransferUnits +
+				'}';
+	}
 }

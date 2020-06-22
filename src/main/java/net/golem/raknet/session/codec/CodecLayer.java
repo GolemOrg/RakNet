@@ -1,8 +1,20 @@
 package net.golem.raknet.session.codec;
 
-public interface CodecLayer {
+import net.golem.raknet.session.RakNetSession;
 
-	void update(long currentTime);
+public abstract class CodecLayer {
 
-	void close();
+	protected RakNetSession session;
+
+	public CodecLayer(RakNetSession session) {
+		this.session = session;
+	}
+
+	public RakNetSession getSession() {
+		return session;
+	}
+
+	public abstract void update(long currentTime);
+
+	public abstract void close();
 }

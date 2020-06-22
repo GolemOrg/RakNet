@@ -38,4 +38,14 @@ public class OpenConnectionReply2Packet extends DataPacket {
 		maximumTransferUnits = decoder.readUnsignedShort();
 		serverSecurity = decoder.readBoolean();
 	}
+
+	@Override
+	public String toString() {
+		return "OpenConnectionReply2Packet{" +
+				"serverGuid=" + serverGuid +
+				", clientAddress=" + clientAddress +
+				", maximumTransferUnits=" + maximumTransferUnits +
+				", serverSecurity=" + serverSecurity +
+				'}';
+	}
 }

@@ -9,8 +9,9 @@ import net.golem.raknet.codec.PacketEncoder;
 import net.golem.raknet.protocol.DataPacket;
 
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 
-public abstract class RakNetInboundPacketHandler<I extends DataPacket> extends SimpleChannelInboundHandler<RakNetPacketEnvelope<I>> {
+public abstract class RakNetInboundPacketHandler<I extends DataPacket> extends SimpleChannelInboundHandler<RakNetPacketEnvelope<I, SocketAddress>> {
 
 	protected RakNetServer server;
 
@@ -35,7 +36,7 @@ public abstract class RakNetInboundPacketHandler<I extends DataPacket> extends S
 	}
 
 	@Override
-	protected void channelRead0(ChannelHandlerContext context, RakNetPacketEnvelope<I> message) {
+	protected void channelRead0(ChannelHandlerContext context, RakNetPacketEnvelope<I, SocketAddress> message) {
 		DataPacket packet = handlePacket(context, message);
 		if(packet != null) {
 			sendPacket(context, packet, message.recipient());
@@ -43,7 +44,7 @@ public abstract class RakNetInboundPacketHandler<I extends DataPacket> extends S
 		message.release();
 	}
 
-	public abstract DataPacket handlePacket(ChannelHandlerContext context, RakNetPacketEnvelope<I> message);
+	public abstract DataPacket handlePacket(ChannelHandlerContext context, RakNetPacketEnvelope<I, SocketAddress> message);
 
 	public void sendPacket(ChannelHandlerContext context, DataPacket packet, InetSocketAddress recipient) {
 		PacketEncoder encoder = new PacketEncoder();

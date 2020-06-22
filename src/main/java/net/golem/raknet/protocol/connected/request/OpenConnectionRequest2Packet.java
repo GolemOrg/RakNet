@@ -34,4 +34,13 @@ public class OpenConnectionRequest2Packet extends DataPacket {
 		maximumTransferUnits = decoder.readShort();
 		clientId = decoder.readLong();
 	}
+
+	@Override
+	public String toString() {
+		return "OpenConnectionRequest2Packet{" +
+				"clientId=" + clientId +
+				", serverAddress=" + serverAddress +
+				", maximumTransferUnits=" + maximumTransferUnits +
+				'}';
+	}
 }

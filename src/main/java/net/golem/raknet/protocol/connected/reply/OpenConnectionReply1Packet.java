@@ -32,4 +32,13 @@ public class OpenConnectionReply1Packet extends DataPacket {
 		useSecurity = decoder.readBoolean();
 		maximumTransferUnits = decoder.readShort();
 	}
+
+	@Override
+	public String toString() {
+		return "OpenConnectionReply1Packet{" +
+				"guid=" + guid +
+				", useSecurity=" + useSecurity +
+				", maximumTransferUnits=" + maximumTransferUnits +
+				'}';
+	}
 }

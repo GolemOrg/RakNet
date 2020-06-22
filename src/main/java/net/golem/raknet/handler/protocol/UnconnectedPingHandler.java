@@ -9,6 +9,8 @@ import net.golem.raknet.protocol.DataPacket;
 import net.golem.raknet.protocol.unconnected.UnconnectedPingPacket;
 import net.golem.raknet.protocol.unconnected.UnconnectedPongPacket;
 
+import java.net.SocketAddress;
+
 @Log4j2
 public class UnconnectedPingHandler extends RakNetInboundPacketHandler<UnconnectedPingPacket> {
 
@@ -17,7 +19,7 @@ public class UnconnectedPingHandler extends RakNetInboundPacketHandler<Unconnect
 	}
 
 	@Override
-	public DataPacket handlePacket(ChannelHandlerContext context, RakNetPacketEnvelope<UnconnectedPingPacket> message) {
+	public DataPacket handlePacket(ChannelHandlerContext context, RakNetPacketEnvelope<UnconnectedPingPacket, SocketAddress> message) {
 		UnconnectedPingPacket packet = message.content();
 
 		UnconnectedPongPacket pk = new UnconnectedPongPacket();

@@ -52,4 +52,13 @@ public class RakNetDatagram extends DataPacket {
 			packets.add(packet);
 		}
 	}
+
+	@Override
+	public String toString() {
+		return "RakNetDatagram{" +
+				"headerFlags=" + headerFlags +
+				", sequenceIndex=" + sequenceIndex +
+				", packets=" + packets +
+				'}';
+	}
 }

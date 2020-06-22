@@ -2,18 +2,18 @@ package net.golem.raknet.enums;
 
 public enum BitFlags {
 
-	VALID(0x80),
-	ACK(0x40),
-	NAK(0x20),
+	VALID((byte) 0x80),
+	ACK((byte) 0x40),
+	NAK((byte) 0x20),
 
-	PACKET_PAIR(0x10),
-	CONTINUOUS_PAIR(0x08),
-	NEEDS_B_AND_AS(0x04);
+	PACKET_PAIR((byte) 0x10),
+	CONTINUOUS_PAIR((byte )0x08),
+	NEEDS_B_AND_AS((byte) 0x04);
 
 	private byte id;
 
-	BitFlags(int id) {
-		this.id = (byte) id;
+	BitFlags(byte id) {
+		this.id = id;
 	}
 
 	public byte getId() {

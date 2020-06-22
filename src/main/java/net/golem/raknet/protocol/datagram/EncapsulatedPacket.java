@@ -110,4 +110,17 @@ public class EncapsulatedPacket {
 			buffer.writerIndex();
 	}
 
+	@Override
+	public String toString() {
+		return "EncapsulatedPacket{" +
+				"reliability=" + reliability +
+				", messageIndex=" + messageIndex +
+				", sequenceIndex=" + sequenceIndex +
+				", orderIndex=" + orderIndex +
+				", orderChannel=" + orderChannel +
+				", splitInfo=" + splitInfo +
+				", buffer=" + buffer +
+				", identifierACK=" + identifierACK +
+				'}';
+	}
 }

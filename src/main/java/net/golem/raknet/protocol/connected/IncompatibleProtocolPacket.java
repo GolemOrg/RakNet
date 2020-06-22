@@ -28,4 +28,12 @@ public class IncompatibleProtocolPacket extends DataPacket {
 		decoder.skipMagic();
 		guid = decoder.readLong();
 	}
+
+	@Override
+	public String toString() {
+		return "IncompatibleProtocolPacket{" +
+				"protocol=" + protocol +
+				", guid=" + guid +
+				'}';
+	}
 }

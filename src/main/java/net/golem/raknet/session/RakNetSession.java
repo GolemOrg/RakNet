@@ -1,8 +1,11 @@
 package net.golem.raknet.session;
 
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.DatagramPacket;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 import lombok.extern.log4j.Log4j2;
 import net.golem.raknet.RakNetServer;
 import net.golem.raknet.enums.PacketReliability;
@@ -141,14 +144,14 @@ public class RakNetSession {
 		if(this.isClosed()) {
 			return;
 		}
-		this.getContext().writeAndFlush(new DatagramPacket(packet.create(), this.getAddress()));
+		context.writeAndFlush(new DatagramPacket(packet.create(), this.getAddress()));
 	}
 
 	public void ping() {
 		ConnectedPingPacket pk = new ConnectedPingPacket();
 		pk.pingTime = server.getRakNetTimeMS();
 		lastPingTime = System.currentTimeMillis();
-		encodeLayer.sendEncapsulatedPacket(pk);
+		encodeLayer.sendEncapsulatedPacket(pk, PacketReliability.UNRELIABLE, 0);
 	}
 
 	public void handle(DataPacket packet) {
@@ -179,10 +182,6 @@ public class RakNetSession {
 			return;
 		}
 
-		if(currentTime - lastPingTime > TimeUnits.PING.getLength()) {
-			this.ping();
-		}
-
 		decodeLayer.update(currentTime);
 		encodeLayer.update(currentTime);
 	}
@@ -207,5 +206,25 @@ public class RakNetSession {
 
 	public void disconnect() {
 		setState(SessionState.DISCONNECTED);
+	}
+
+	@Override
+	public String toString() {
+		return "RakNetSession{" +
+				"server=" + server +
+				", sessionManager=" + sessionManager +
+				", context=" + context +
+				", address=" + address +
+				", state=" + state +
+				", worker=" + worker +
+				", listeners=" + listeners +
+				", lastPingTime=" + lastPingTime +
+				", lastReceivedTime=" + lastReceivedTime +
+				", decodeLayer=" + decodeLayer +
+				", encodeLayer=" + encodeLayer +
+				", active=" + active +
+				", closed=" + closed +
+				", maximumTransferUnits=" + maximumTransferUnits +
+				'}';
 	}
 }

@@ -22,4 +22,11 @@ public class ConnectedPingPacket extends DataPacket {
 	public void decode(PacketDecoder decoder) {
 		pingTime = decoder.readLong();
 	}
+
+	@Override
+	public String toString() {
+		return "ConnectedPingPacket{" +
+				"pingTime=" + pingTime +
+				'}';
+	}
 }

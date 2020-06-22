@@ -78,29 +78,25 @@ public class RakNetServer {
 
 	public void create() {
 		serverGroup = new NioEventLoopGroup();
-		try {
-			new Bootstrap()
-					.channel(NioDatagramChannel.class)
-					.group(serverGroup)
-					.option(ChannelOption.SO_REUSEADDR, true)
-					.handler(new ChannelInitializer<NioDatagramChannel>() {
-						@Override
-						protected void initChannel(NioDatagramChannel channel) {
-							channel.pipeline().addLast(
-									new PacketDecodeHandler(RakNetServer.this),
-									new UnconnectedPingHandler(RakNetServer.this),
-									new OpenConnectionRequest1Handler(RakNetServer.this),
-									new OpenConnectionRequest2Handler(RakNetServer.this)
-							);
-							if(verbose) log.info("Created channel handlers");
-						}
-					})
-					.bind(getLocalAddress().getAddress(), getLocalAddress().getPort())
-					.sync();
-			if(verbose) log.info("Started server successfully!");
-		} catch (InterruptedException exception) {
-			log.error("Encountered InterruptedException while initializing bootstrap. Error: {}", exception.getMessage());
-		}
+		new Bootstrap()
+				.channel(NioDatagramChannel.class)
+				.group(serverGroup)
+				.option(ChannelOption.SO_REUSEADDR, true)
+				.handler(new ChannelInitializer<NioDatagramChannel>() {
+					@Override
+					protected void initChannel(NioDatagramChannel channel) {
+						channel.pipeline().addLast(
+								new PacketDecodeHandler(RakNetServer.this),
+								new UnconnectedPingHandler(RakNetServer.this),
+								new OpenConnectionRequest1Handler(RakNetServer.this),
+								new OpenConnectionRequest2Handler(RakNetServer.this)
+						);
+						if(verbose) log.info("Created channel handlers");
+					}
+				})
+				.bind(getLocalAddress().getAddress(), getLocalAddress().getPort())
+				.syncUninterruptibly();
+		if(verbose) log.info("Started server successfully!");
 	}
 
 	public long getRakNetTimeMS() {

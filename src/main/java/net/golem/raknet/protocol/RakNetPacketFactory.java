@@ -1,27 +1,27 @@
 package net.golem.raknet.protocol;
 
 import io.netty.buffer.ByteBuf;
+import lombok.extern.log4j.Log4j2;
 import net.golem.raknet.codec.PacketDecoder;
 import net.golem.raknet.enums.BitFlags;
+import net.golem.raknet.protocol.acknowledge.AcknowledgePacket;
 import net.golem.raknet.protocol.connected.ConnectedPingPacket;
-import net.golem.raknet.protocol.connected.DisconnectionNotificationPacket;
-import net.golem.raknet.protocol.connected.NewIncomingConnectionPacket;
-import net.golem.raknet.protocol.connected.connection.ConnectionRequestPacket;
 import net.golem.raknet.protocol.connected.request.OpenConnectionRequest1Packet;
 import net.golem.raknet.protocol.connected.request.OpenConnectionRequest2Packet;
 import net.golem.raknet.protocol.datagram.RakNetDatagram;
 import net.golem.raknet.protocol.unconnected.UnconnectedPingPacket;
 
+@Log4j2
 public final class RakNetPacketFactory {
 
 	public static DataPacket from(ByteBuf buffer) {
 		PacketDecoder decoder = new PacketDecoder(buffer);
-		int id = buffer.readUnsignedByte();
+		short id = decoder.readUnsignedByte();
 		DataPacket packet;
 		if((id & BitFlags.VALID.getId()) != 0) {
 			if((id & BitFlags.ACK.getId()) != 0) {
 				packet = AcknowledgePacket.createACK();
-			} else if((id & BitFlags.NAK.getId()) != 0){
+			} else if((id & BitFlags.NAK.getId()) != 0) {
 				packet = AcknowledgePacket.createNAK();
 			} else {
 				packet = new RakNetDatagram();
@@ -40,20 +40,16 @@ public final class RakNetPacketFactory {
 				case RakNetPacketIds.OPEN_CONNECTION_REQUEST_2:
 					packet = new OpenConnectionRequest2Packet();
 					break;
-				case RakNetPacketIds.CONNECTION_REQUEST:
-					packet = new ConnectionRequestPacket();
-					break;
-				case RakNetPacketIds.DISCONNECTION_REQUEST:
-					packet = new DisconnectionNotificationPacket();
-					break;
-				case RakNetPacketIds.NEW_INCOMING_CONNECTION:
-					packet = new NewIncomingConnectionPacket();
-					break;
 				default:
 					packet = new RawPacket(id);
 			}
 		}
-		packet.decode(decoder);
+		try {
+			packet.decode(decoder);
+		} catch(Exception exception) {
+			log.error("Packet: {}", packet.getClass().getSimpleName());
+			log.error("Exception occurred: {}", exception.getMessage());
+		}
 		return packet;
 	}
 

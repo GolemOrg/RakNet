@@ -25,4 +25,13 @@ public class SplitPacketInfo {
 	public int getSplitCount() {
 		return splitCount;
 	}
+
+	@Override
+	public String toString() {
+		return "SplitPacketInfo{" +
+				"splitId=" + splitId +
+				", splitIndex=" + splitIndex +
+				", splitCount=" + splitCount +
+				'}';
+	}
 }
