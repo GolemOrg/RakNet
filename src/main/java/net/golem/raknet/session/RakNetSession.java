@@ -4,8 +4,6 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.DatagramPacket;
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GenericFutureListener;
 import lombok.extern.log4j.Log4j2;
 import net.golem.raknet.RakNetServer;
 import net.golem.raknet.enums.PacketReliability;
@@ -24,8 +22,9 @@ public class RakNetSession {
 	/**
 	 * TimeUnits, in milliseconds
 	 */
-	enum TimeUnits {
+	public enum TimeUnits {
 		UPDATE(10),
+		ACK(50),
 		PING(1000 * 2),
 		STALE(1000 * 5),
 		TIMEOUT(1000 * 30);
@@ -56,6 +55,8 @@ public class RakNetSession {
 
 	private long lastPingTime = System.currentTimeMillis();
 	private long lastReceivedTime = System.currentTimeMillis();
+
+	private int latency = -1;
 
 	private PacketDecodeLayer decodeLayer = new PacketDecodeLayer(this);
 	private PacketEncodeLayer encodeLayer = new PacketEncodeLayer(this);
@@ -147,6 +148,14 @@ public class RakNetSession {
 		context.writeAndFlush(new DatagramPacket(packet.create(), this.getAddress()));
 	}
 
+	public int getLatency() {
+		return latency;
+	}
+
+	public void setLatency(int latency) {
+		this.latency = latency;
+	}
+
 	public void ping() {
 		ConnectedPingPacket pk = new ConnectedPingPacket();
 		pk.pingTime = server.getRakNetTimeMS();
@@ -180,6 +189,10 @@ public class RakNetSession {
 		if(difference > TimeUnits.TIMEOUT.getLength()) {
 			close("timeout");
 			return;
+		}
+
+		if(currentTime - lastPingTime > TimeUnits.PING.getLength()) {
+			ping();
 		}
 
 		decodeLayer.update(currentTime);

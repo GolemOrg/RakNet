@@ -5,6 +5,7 @@ import net.golem.raknet.protocol.DataPacket;
 import net.golem.raknet.protocol.RakNetPacketIds;
 import net.golem.raknet.protocol.RawPacket;
 import net.golem.raknet.protocol.connected.ConnectedPingPacket;
+import net.golem.raknet.protocol.connected.ConnectedPongPacket;
 import net.golem.raknet.protocol.connected.DisconnectionNotificationPacket;
 import net.golem.raknet.protocol.connected.NewIncomingConnectionPacket;
 import net.golem.raknet.protocol.connected.connection.ConnectionRequestPacket;
@@ -26,6 +27,9 @@ public final class EncapsulatedPacketFactory {
 				break;
 			case RakNetPacketIds.CONNECTED_PING:
 				packet = new ConnectedPingPacket();
+				break;
+			case RakNetPacketIds.CONNECTED_PONG:
+				packet = new ConnectedPongPacket();
 				break;
 			default:
 				packet = new RawPacket(packetId);
