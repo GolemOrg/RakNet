@@ -1,12 +1,16 @@
 package net.golem.raknet.session;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import lombok.extern.log4j.Log4j2;
 import net.golem.raknet.protocol.datagram.EncapsulatedPacket;
 import net.golem.raknet.session.codec.PacketDecodeLayer;
 
 import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.Objects;
 
+@Log4j2
 public class EncapsulatedSplitHandler {
 
 	private LinkedHashMap<Short, EncapsulatedPacket[]> splitPackets = new LinkedHashMap<>();
@@ -32,12 +36,9 @@ public class EncapsulatedSplitHandler {
 		EncapsulatedPacket[] packets = splitPackets.getOrDefault(id, new EncapsulatedPacket[packet.splitInfo.splitCount]);
 		packets[index] = packet;
 		packet.buffer.retain();
-
-		for(EncapsulatedPacket split : packets) {
-			if(split == null) {
-				splitPackets.put(id, packets);
-				return null;
-			}
+		if(Arrays.stream(packets).filter(Objects::nonNull).count() < packet.splitInfo.splitCount) {
+			splitPackets.put(id, packets);
+			return null;
 		}
 		EncapsulatedPacket assembled = new EncapsulatedPacket();
 		assembled.buffer = Unpooled.buffer();
@@ -47,12 +48,12 @@ public class EncapsulatedSplitHandler {
 		assembled.orderIndex = packet.orderIndex;
 		assembled.orderChannel = packet.orderChannel;
 
-		Arrays.asList(packets).forEach(pk -> {
+		Arrays.stream(packets).forEach(split -> {
+			split.buffer.resetReaderIndex();
+			assembled.buffer.writeBytes(split.buffer);
 			try {
-				assembled.buffer.writeBytes(pk.buffer);
-			} finally {
-				pk.buffer.release();
-			}
+				split.buffer.release();
+			} catch (Exception ignored) {}
 		});
 		splitPackets.remove(id);
 		return assembled;

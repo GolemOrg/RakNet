@@ -130,6 +130,10 @@ public class RakNetSession {
 		this.maximumTransferUnits = maximumTransferUnits;
 	}
 
+	public ArrayList<SessionListener> getListeners() {
+		return listeners;
+	}
+
 	public void addListener(SessionListener listener) {
 		if(listeners.contains(listener)) {
 			return;
@@ -210,6 +214,7 @@ public class RakNetSession {
 		encodeLayer.close();
 		worker.shutdownGracefully();
 		listeners.forEach(SessionListener::onClose);
+		server.getListener().closeSession(getAddress());
 		setClosed(true);
 	}
 

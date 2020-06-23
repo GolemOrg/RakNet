@@ -1,12 +1,13 @@
 package net.golem.raknet;
 
+import java.net.InetSocketAddress;
+
 public interface RakNetServerListener {
 
+	void openSession(InetSocketAddress address);
 
-	void openSession();
+	void closeSession(InetSocketAddress address);
 
-	void closeSession();
-
-	void updatePing();
+	void updatePing(InetSocketAddress address);
 
 }

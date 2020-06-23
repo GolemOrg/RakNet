@@ -28,8 +28,9 @@ public class EncodeHandler {
 		this.encodeLayer = encodeLayer;
 	}
 
-	public PacketEncodeLayer getEncodeLayer() {
-		return encodeLayer;
+
+	public void update(long currentTime) {
+
 	}
 
 	public void passEncapsulated(EncapsulatedPacket packet, boolean immediate) {
@@ -71,7 +72,7 @@ public class EncodeHandler {
 			if(packet.reliability.isReliable()) {
 				packet.messageIndex = this.currentMessageIndex++;
 			}
-			addEncapsulatedToQueue(packet);
+			addEncapsulatedToQueue(packet, immediate);
 		}
 	}
 

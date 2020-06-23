@@ -6,6 +6,8 @@ public interface SessionListener {
 
 	void onPacket(DataPacket packet);
 
+	void onOpen();
+
 	void onClose();
 
 

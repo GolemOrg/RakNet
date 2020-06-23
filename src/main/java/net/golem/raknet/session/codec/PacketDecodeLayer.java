@@ -16,6 +16,7 @@ import net.golem.raknet.protocol.datagram.EncapsulatedPacket;
 import net.golem.raknet.protocol.datagram.RakNetDatagram;
 import net.golem.raknet.session.EncapsulatedSplitHandler;
 import net.golem.raknet.session.RakNetSession;
+import net.golem.raknet.session.SessionListener;
 import net.golem.raknet.session.SessionState;
 
 import java.util.TreeSet;
@@ -82,15 +83,17 @@ public class PacketDecodeLayer extends CodecLayer {
 	}
 
 	public void handleEncapsulated(EncapsulatedPacket packet) {
+		EncapsulatedPacket encapsulatedPacket = packet;
 		if(packet.splitInfo != null) {
 			EncapsulatedPacket assembled = splitHandler.handle(packet);
 			if(assembled != null) {
-				packet = assembled;
+				encapsulatedPacket = assembled;
 			}
 		}
-		DataPacket pk = EncapsulatedPacketFactory.from(new PacketDecoder(packet.buffer));
+		DataPacket pk = EncapsulatedPacketFactory.from(new PacketDecoder(encapsulatedPacket.buffer));
 		if(!handle(pk)) {
 			session.handle(pk);
+			session.getListeners().forEach(listener -> listener.onPacket(pk));
 		}
 	}
 
@@ -110,6 +113,8 @@ public class PacketDecodeLayer extends CodecLayer {
 		if(packet instanceof NewIncomingConnectionPacket) {
 			if(((NewIncomingConnectionPacket) packet).address.getPort() == session.getServer().getLocalAddress().getPort()) {
 				session.setState(SessionState.CONNECTED);
+				session.getServer().getListener().openSession(session.getAddress());
+				session.getListeners().forEach(SessionListener::onOpen);
 				session.ping();
 			}
 			return true;

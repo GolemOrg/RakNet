@@ -1,5 +1,6 @@
 package net.golem.raknet.session.codec;
 
+import lombok.extern.log4j.Log4j2;
 import net.golem.raknet.enums.PacketReliability;
 import net.golem.raknet.protocol.DataPacket;
 import net.golem.raknet.protocol.datagram.EncapsulatedPacket;
@@ -11,9 +12,8 @@ import javax.annotation.Nonnegative;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+@Log4j2
 public class PacketEncodeLayer extends CodecLayer {
-
-	private int currentSequenceNumber = 0;
 
 	/**
 	 * IP header (20 bytes) + UDP header (8 bytes) + RakNet weird (8 bytes)
@@ -23,6 +23,8 @@ public class PacketEncodeLayer extends CodecLayer {
 	 * LENGTH_OVERHEAD + datagram header (4 bytes) + maximum encapsulated packet header (20 bytes)
 	 */
 	public static final int ENCAPSULATED_OVERHEAD = LENGTH_OVERHEAD + 24;
+
+	private int currentSequenceNumber = 0;
 
 	public ConcurrentLinkedQueue<EncapsulatedPacket> packetQueue = new ConcurrentLinkedQueue<>();
 
@@ -34,12 +36,13 @@ public class PacketEncodeLayer extends CodecLayer {
 
 	@Override
 	public void update(long currentTime) {
-
+		sendQueue();
 	}
 
 	@Override
 	public void close() {
-
+		packetQueue.clear();
+		encodeHandler.requiresAck.clear();
 	}
 
 	public void sendEncapsulatedPacket(DataPacket packet, PacketReliability reliability, @Nonnegative int orderChannel, boolean immediate) {
