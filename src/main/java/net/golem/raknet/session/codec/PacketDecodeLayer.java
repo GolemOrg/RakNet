@@ -86,9 +86,10 @@ public class PacketDecodeLayer extends CodecLayer {
 		EncapsulatedPacket encapsulatedPacket = packet;
 		if(packet.splitInfo != null) {
 			EncapsulatedPacket assembled = splitHandler.handle(packet);
-			if(assembled != null) {
-				encapsulatedPacket = assembled;
+			if(assembled == null) {
+				return;
 			}
+			encapsulatedPacket = assembled;
 		}
 		DataPacket pk = EncapsulatedPacketFactory.from(new PacketDecoder(encapsulatedPacket.buffer));
 		if(!handle(pk)) {
