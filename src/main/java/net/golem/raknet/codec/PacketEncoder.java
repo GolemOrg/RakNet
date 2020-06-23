@@ -104,10 +104,10 @@ public class PacketEncoder {
 	}
 
 	public void writeUnsigned(long value) {
-		while((value & ~0x7FL) != 0) {
+		do {
 			buffer.writeByte(((int) value & 0x7F) | 0x80);
 			value >>>= 7;
-		}
+		} while((value & ~0x7FL) != 0);
 		buffer.writeByte((int) value);
 	}
 

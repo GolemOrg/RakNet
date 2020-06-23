@@ -155,4 +155,21 @@ public class PacketDecoder {
 		return null;
 	}
 
+	public int readUnsignedVarInt() {
+		int value = 0;
+		int size = 0;
+		int b;
+		while (((b = buffer.readByte()) & 0x80) == 0x80) {
+			value |= (b & 0x7F) << (size++ * 7);
+			if (size >= 5) {
+				throw new IllegalArgumentException("VarInt too big");
+			}
+		}
+		return value | ((b & 0x7F) << (size * 7));
+	}
+
+	public int readSignedVarInt() {
+		return 0;
+	}
+
 }

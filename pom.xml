@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>net.golem</groupId>
 	<artifactId>raknet</artifactId>
-	<version>0.1.6</version>
+	<version>0.1.7</version>
 	<properties>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
