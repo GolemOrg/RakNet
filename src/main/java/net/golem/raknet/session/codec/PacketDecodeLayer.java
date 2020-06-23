@@ -39,7 +39,7 @@ public class PacketDecodeLayer extends CodecLayer {
 
 	public void checkQueues(long currentTime) {
 		long difference = currentTime - lastQueueSend;
-		if(ackQueue.size() > 0 && (difference > RakNetSession.TimeUnits.ACK.getLength())) {
+		if(ackQueue.size() > 0) {
 			AcknowledgePacket packet = AcknowledgePacket.createACK();
 			packet.records = ackQueue;
 			session.sendPacket(packet);
@@ -130,7 +130,6 @@ public class PacketDecodeLayer extends CodecLayer {
 		ConnectedPongPacket pk = new ConnectedPongPacket();
 		pk.pingTime = packet.pingTime;
 		pk.pongTime = session.getServer().getRakNetTimeMS();
-
 		session.getEncodeLayer().sendEncapsulatedPacket(pk, PacketReliability.UNRELIABLE, 0);
 	}
 

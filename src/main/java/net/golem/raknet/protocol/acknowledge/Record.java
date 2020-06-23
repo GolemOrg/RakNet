@@ -1,10 +1,8 @@
-package net.golem.raknet.protocol;
+package net.golem.raknet.protocol.acknowledge;
 
 import com.google.common.collect.Iterators;
 import com.google.common.collect.PeekingIterator;
-import net.golem.raknet.codec.PacketDecoder;
 import net.golem.raknet.codec.PacketEncoder;
-import sun.reflect.generics.tree.Tree;
 
 import java.util.ArrayList;
 import java.util.Set;

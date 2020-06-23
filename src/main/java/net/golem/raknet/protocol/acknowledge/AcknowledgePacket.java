@@ -4,7 +4,6 @@ import net.golem.raknet.codec.PacketDecoder;
 import net.golem.raknet.codec.PacketEncoder;
 import net.golem.raknet.protocol.DataPacket;
 import net.golem.raknet.protocol.RakNetPacketIds;
-import net.golem.raknet.protocol.Record;
 
 import java.util.ArrayList;
 import java.util.HashSet;

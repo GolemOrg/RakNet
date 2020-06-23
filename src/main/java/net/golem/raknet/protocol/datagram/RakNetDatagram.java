@@ -10,6 +10,8 @@ import java.util.ArrayList;
 
 public class RakNetDatagram extends DataPacket {
 
+	public static final int HEADER_SIZE = 1 + 3; //header flags (1 byte) + sequence number(3 bytes)
+
 	public int headerFlags;
 
 	public int sequenceIndex;

@@ -4,16 +4,29 @@ import net.golem.raknet.enums.PacketReliability;
 import net.golem.raknet.protocol.DataPacket;
 import net.golem.raknet.protocol.datagram.EncapsulatedPacket;
 import net.golem.raknet.protocol.datagram.RakNetDatagram;
+import net.golem.raknet.session.EncodeHandler;
 import net.golem.raknet.session.RakNetSession;
 
 import javax.annotation.Nonnegative;
+import java.util.ArrayList;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class PacketEncodeLayer extends CodecLayer {
 
+	private int currentSequenceNumber = 0;
+
+	/**
+	 * IP header (20 bytes) + UDP header (8 bytes) + RakNet weird (8 bytes)
+	 */
+	public static final int LENGTH_OVERHEAD = 36;
+	/**
+	 * LENGTH_OVERHEAD + datagram header (4 bytes) + maximum encapsulated packet header (20 bytes)
+	 */
+	public static final int ENCAPSULATED_OVERHEAD = LENGTH_OVERHEAD + 24;
+
 	public ConcurrentLinkedQueue<EncapsulatedPacket> packetQueue = new ConcurrentLinkedQueue<>();
 
-	private int currentSequenceNumber = 0;
+	private EncodeHandler encodeHandler = new EncodeHandler(this);
 
 	public PacketEncodeLayer(RakNetSession session) {
 		super(session);
@@ -34,15 +47,7 @@ public class PacketEncodeLayer extends CodecLayer {
 		pk.buffer = packet.create();
 		pk.reliability = reliability;
 		pk.orderChannel = orderChannel;
-
-		if(immediate) {
-			RakNetDatagram datagram = new RakNetDatagram();
-			datagram.packets.add(pk);
-			datagram.sequenceIndex = currentSequenceNumber++;
-			sendDatagram(datagram);
-		} else {
-			packetQueue.add(pk);
-		}
+		encodeHandler.passEncapsulated(pk, immediate);
 	}
 
 	public void sendEncapsulatedPacket(DataPacket packet, PacketReliability reliability, @Nonnegative int orderChannel) {
@@ -51,5 +56,15 @@ public class PacketEncodeLayer extends CodecLayer {
 
 	public void sendDatagram(RakNetDatagram datagram) {
 		session.sendPacket(datagram);
+	}
+
+	public void sendQueue() {
+		if(packetQueue.size() > 0) {
+			RakNetDatagram datagram = new RakNetDatagram();
+			datagram.packets = new ArrayList<>(packetQueue);
+			datagram.sequenceIndex = currentSequenceNumber++;
+			sendDatagram(datagram);
+			packetQueue.clear();
+		}
 	}
 }
