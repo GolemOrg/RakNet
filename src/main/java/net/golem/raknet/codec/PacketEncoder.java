@@ -67,6 +67,14 @@ public class PacketEncoder {
 		buffer.writeLongLE(value);
 	}
 
+	public void writeFloat(float value) {
+		buffer.writeFloat(value);
+	}
+
+	public void writeFloatLE(float value) {
+		buffer.writeFloatLE(value);
+	}
+
 	public void writeDouble(double value) {
 		buffer.writeDouble(value);
 	}
