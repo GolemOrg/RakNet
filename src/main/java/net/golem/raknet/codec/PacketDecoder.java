@@ -85,6 +85,22 @@ public class PacketDecoder {
 		return buffer.readIntLE();
 	}
 
+	public float readFloat() {
+		return buffer.readFloat();
+	}
+
+	public float readFloatLE() {
+		return buffer.readFloatLE();
+	}
+
+	public double readDouble() {
+		return buffer.readDouble();
+	}
+
+	public double readDoubleLE() {
+		return buffer.readDoubleLE();
+	}
+
 	public long readUnsignedInt() {
 		return buffer.readUnsignedInt();
 	}
@@ -169,7 +185,16 @@ public class PacketDecoder {
 	}
 
 	public int readSignedVarInt() {
-		return 0;
+		int value = readUnsignedVarInt();
+		return (value >>> 1) ^ -(value & 1);
+	}
+
+	public long readUnsignedVarLong() {
+		return readUnsignedVarInt();
+	}
+
+	public long readSignedVarLong() {
+		return readSignedVarInt();
 	}
 
 }

@@ -67,6 +67,14 @@ public class PacketEncoder {
 		buffer.writeLongLE(value);
 	}
 
+	public void writeDouble(double value) {
+		buffer.writeDouble(value);
+	}
+
+	public void writeDoubleLE(double value) {
+		buffer.writeDoubleLE(value);
+	}
+
 	public void writeString(String value) {
 		buffer.writeShort(value.length());
 		buffer.writeCharSequence(value, StandardCharsets.UTF_8);
@@ -103,7 +111,7 @@ public class PacketEncoder {
 		}
 	}
 
-	public void writeUnsigned(long value) {
+	private void writeUnsigned(long value) {
 		do {
 			buffer.writeByte(((int) value & 0x7F) | 0x80);
 			value >>>= 7;
@@ -117,6 +125,14 @@ public class PacketEncoder {
 
 	public void writeSignedVarInt(int value) {
 		writeUnsigned((value << 1) ^ (value >> 31));
+	}
+
+	public void writeUnsignedVarLong(long value) {
+		writeUnsigned(value);
+	}
+
+	public void writeSignedVarLong(long value) {
+		writeUnsigned((value << 1) ^ (value >> 63));
 	}
 
 	public void writeMagic() {
