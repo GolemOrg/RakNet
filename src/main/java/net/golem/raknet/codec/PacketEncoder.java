@@ -13,6 +13,9 @@ import net.golem.raknet.RakNetConstants;
 
 public class PacketEncoder {
 
+	public static final int VAR_STRING = 0;
+	public static final int SHORT_STRING = 1;
+
 	private ByteBuf buffer = Unpooled.buffer();
 
 	public ByteBuf getBuffer() {
@@ -83,9 +86,17 @@ public class PacketEncoder {
 		buffer.writeDoubleLE(value);
 	}
 
-	public void writeString(String value) {
-		this.writeUnsignedVarInt(value.length());
+	public void writeString(String value, int type) {
+		if(type == SHORT_STRING) {
+			buffer.writeShort(value.length());
+		} else {
+			writeUnsignedVarInt(value.length());
+		}
 		buffer.writeCharSequence(value, StandardCharsets.UTF_8);
+	}
+
+	public void writeString(String value) {
+		writeString(value, VAR_STRING);
 	}
 
 	private void flip(ByteBuf buffer) {

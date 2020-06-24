@@ -22,7 +22,7 @@ public class UnconnectedPongPacket extends DataPacket {
 		encoder.writeLong(pingId);
 		encoder.writeLong(guid);
 		encoder.writeMagic();
-		encoder.writeString(serverName);
+		encoder.writeString(serverName, PacketEncoder.SHORT_STRING);
 	}
 
 	@Override
