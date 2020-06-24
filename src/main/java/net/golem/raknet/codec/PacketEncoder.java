@@ -84,7 +84,7 @@ public class PacketEncoder {
 	}
 
 	public void writeString(String value) {
-		buffer.writeShort(value.length());
+		this.writeUnsignedVarInt(value.length());
 		buffer.writeCharSequence(value, StandardCharsets.UTF_8);
 	}
 
@@ -120,15 +120,15 @@ public class PacketEncoder {
 	}
 
 	private void writeUnsigned(long value) {
-		do {
-			buffer.writeByte(((int) value & 0x7F) | 0x80);
-			value >>>= 7;
-		} while((value & ~0x7FL) != 0);
-		buffer.writeByte((int) value);
+		while((value & ~0x7FL) != 0) {
+			buffer.writeByte(((byte) value & 0x7F) | 0x80);
+			value >>= 7;
+		}
+		buffer.writeByte((byte) value);
 	}
 
 	public void writeUnsignedVarInt(int value) {
-		writeUnsigned(value & 0xFFFFFFFFL);
+		writeUnsigned(value);
 	}
 
 	public void writeSignedVarInt(int value) {

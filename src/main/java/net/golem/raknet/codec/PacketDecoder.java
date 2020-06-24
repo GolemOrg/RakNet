@@ -134,7 +134,7 @@ public class PacketDecoder {
 	}
 
 	public String readString() {
-		int length = readShort();
+		int length = readUnsignedVarInt();
 		return (String) buffer.readCharSequence(length, StandardCharsets.UTF_8);
 	}
 
