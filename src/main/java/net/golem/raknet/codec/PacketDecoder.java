@@ -133,9 +133,13 @@ public class PacketDecoder {
 		return buffer.readableBytes();
 	}
 
-	public String readString() {
-		int length = readUnsignedVarInt();
+	public String readString(int type) {
+		int length = type == PacketEncoder.VAR_STRING ?  readUnsignedVarInt() : readShort();
 		return (String) buffer.readCharSequence(length, StandardCharsets.UTF_8);
+	}
+
+	public String readString() {
+		return readString(PacketEncoder.VAR_STRING);
 	}
 
 	public void skipMagic() {
@@ -171,10 +175,10 @@ public class PacketDecoder {
 		return null;
 	}
 
-	public int readUnsignedVarInt() {
-		int value = 0;
+	public long readUnsignedVarLong() {
+		long value = 0;
 		int size = 0;
-		int b;
+		long b;
 		while (((b = buffer.readByte()) & 0x80) == 0x80) {
 			value |= (b & 0x7F) << (size++ * 7);
 			if (size >= 5) {
@@ -189,8 +193,8 @@ public class PacketDecoder {
 		return (value >>> 1) ^ -(value & 1);
 	}
 
-	public long readUnsignedVarLong() {
-		return readUnsignedVarInt();
+	public int readUnsignedVarInt() {
+		return (int) readUnsignedVarLong();
 	}
 
 	public long readSignedVarLong() {
