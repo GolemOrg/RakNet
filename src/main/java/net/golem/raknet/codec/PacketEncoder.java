@@ -16,7 +16,7 @@ public class PacketEncoder {
 	public static final int VAR_STRING = 0;
 	public static final int SHORT_STRING = 1;
 
-	private ByteBuf buffer = Unpooled.buffer();
+	private final ByteBuf buffer = Unpooled.buffer().retain();
 
 	public ByteBuf getBuffer() {
 		return buffer;

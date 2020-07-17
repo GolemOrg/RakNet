@@ -15,7 +15,7 @@ public abstract class RakNetInboundPacketHandler<I extends DataPacket> extends S
 
 	protected RakNetServer server;
 
-	private Class<? extends DataPacket> packetClass;
+	private final Class<? extends DataPacket> packetClass;
 
 	public RakNetInboundPacketHandler(RakNetServer server, Class<? extends DataPacket> packetClass) {
 		this.server = server;
@@ -48,7 +48,11 @@ public abstract class RakNetInboundPacketHandler<I extends DataPacket> extends S
 
 	public void sendPacket(ChannelHandlerContext context, DataPacket packet, InetSocketAddress recipient) {
 		PacketEncoder encoder = new PacketEncoder();
-		context.writeAndFlush(new DatagramPacket(packet.write(encoder), recipient));
+		try {
+			context.writeAndFlush(new DatagramPacket(packet.write(encoder), recipient));
+		} finally {
+			encoder.getBuffer().release();
+		}
 	}
 
 }
