@@ -96,7 +96,7 @@ public class EncapsulatedPacket {
 			splitInfo = new SplitPacketInfo(splitId, splitIndex, splitCount);
 		}
 
-		buffer = decoder.readSlice(length);
+		buffer = decoder.readSlice(length).retain();
 	}
 
 	public int length() {
