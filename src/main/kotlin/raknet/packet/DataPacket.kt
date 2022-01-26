@@ -1,22 +1,65 @@
 package raknet.packet
 
-import raknet.codec.DecodeResult
+import io.netty.buffer.ByteBuf
+import io.netty.buffer.Unpooled
+import raknet.Magic
+import raknet.codec.Codable
+import kotlin.reflect.full.memberProperties
+import kotlin.reflect.full.primaryConstructor
 
-abstract class DataPacket(private val id: Byte) : Packet {
+abstract class DataPacket(private val id: Short) : Packet {
 
     override fun encode(): ByteArray {
-        // Return an empty payload for now
-        return ByteArray(0)
+        var buffer = Unpooled.buffer()
+        val reflected = this::class
+        // This might be a little heavy to do every time, but we'll have to do more performance testing to see if it's worth it
+        reflected.primaryConstructor?.parameters?.forEachIndexed { _, parameter ->
+            val value = reflected.memberProperties.find { it.name == parameter.name }?.getter?.call(this)
+            buffer = value.encode(buffer)
+        }
+        return buffer.array().clone()
     }
 
-    abstract override fun decode(buffer: ByteArray): DecodeResult
+    abstract override fun decode(buffer: ByteBuf)
 
-    fun prepare(): ByteArray {
-        return byteArrayOf(id).plus(encode())
+    fun prepare(): ByteBuf {
+        return Unpooled.buffer()
+            .writeByte(id.toInt())
+            .writeBytes(encode())
     }
+
 
     override fun toString(): String {
         return "DataPacket(id=$id)"
     }
 
 }
+
+
+private fun Any?.encode(buffer: ByteBuf): ByteBuf {
+    return when (this) {
+        is Byte -> buffer.writeByte(this as Int)
+        is Short -> buffer.writeShort(this as Int)
+        is Int -> buffer.writeInt(this)
+        is Long -> buffer.writeLong(this)
+        is Float -> buffer.writeFloat(this)
+        is Double -> buffer.writeDouble(this)
+        is String -> {
+            buffer.writeShort(this.length)
+            buffer.writeCharSequence(this, Charsets.UTF_8)
+            return buffer
+        }
+        is Magic -> buffer.writeMagic()
+        is ByteArray -> buffer.writeBytes(this)
+        is Codable -> this.encode(buffer)
+        // Just return the buffer as is
+        else -> buffer
+    }
+}
+fun ByteBuf.readToByteArray(length: Int): ByteArray {
+    val bytes = ByteArray(length)
+    readBytes(bytes)
+    return bytes
+}
+fun ByteBuf.writeMagic(): ByteBuf = writeBytes(Magic.BYTES)
+fun ByteBuf.readMagic(): Magic = Magic.verify(readToByteArray(Magic.BYTES.size))
