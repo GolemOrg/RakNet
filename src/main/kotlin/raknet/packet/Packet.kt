@@ -1,6 +1,6 @@
 package raknet.packet
 
-import raknet.codec.DecodeResult
+import io.netty.buffer.ByteBuf
 
 /**
  * This is the base layer for any RakNet Packet.
@@ -16,6 +16,6 @@ interface Packet {
 
     fun encode(): ByteArray
 
-    fun decode(buffer: ByteArray): DecodeResult
+    fun decode(buffer: ByteBuf)
 
 }
