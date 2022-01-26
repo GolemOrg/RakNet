@@ -6,6 +6,6 @@ interface Codable {
 
     fun encode(buffer: ByteBuf): ByteBuf
 
-    fun decode(buffer: ByteBuf)
+    fun decode(buffer: ByteBuf): Any
 
 }
