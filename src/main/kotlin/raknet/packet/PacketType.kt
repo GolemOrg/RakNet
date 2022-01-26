@@ -24,7 +24,7 @@ enum class PacketType(private val id: Short) {
     ACK(0xc0),
     NAK(0xa0);
 
-    fun toId(): Short {
+    fun id(): Short {
         return id
     }
 
