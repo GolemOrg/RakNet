@@ -2,8 +2,7 @@ package raknet.packet
 
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
-import raknet.Magic
-import raknet.codec.Codable
+import raknet.codec.encode
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
 
@@ -35,26 +34,6 @@ abstract class DataPacket(private val id: Short) : Packet {
 
 }
 
-
-private fun Any?.encode(buffer: ByteBuf): ByteBuf {
-    return when (this) {
-        is Byte -> buffer.writeByte(this as Int)
-        is Short -> buffer.writeShort(this as Int)
-        is Int -> buffer.writeInt(this)
-        is Long -> buffer.writeLong(this)
-        is Float -> buffer.writeFloat(this)
-        is Double -> buffer.writeDouble(this)
-        is String -> {
-            buffer.writeShort(this.length)
-            buffer.writeCharSequence(this, Charsets.UTF_8)
-            return buffer
-        }
-        is ByteArray -> buffer.writeBytes(this)
-        is Codable -> this.encode(buffer)
-        // Just return the buffer as is
-        else -> buffer
-    }
-}
 fun ByteBuf.readToByteArray(length: Int): ByteArray {
     val bytes = ByteArray(length)
     readBytes(bytes)
