@@ -14,6 +14,7 @@ repositories {
 dependencies {
     implementation("io.netty:netty-all:4.1.72.Final")
     testImplementation("org.jetbrains.kotlin:kotlin-test:1.6.0")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:1.6.0")
 }
 
 tasks.test {
