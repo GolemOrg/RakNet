@@ -49,7 +49,6 @@ private fun Any?.encode(buffer: ByteBuf): ByteBuf {
             buffer.writeCharSequence(this, Charsets.UTF_8)
             return buffer
         }
-        is Magic -> buffer.writeMagic()
         is ByteArray -> buffer.writeBytes(this)
         is Codable -> this.encode(buffer)
         // Just return the buffer as is
@@ -61,5 +60,3 @@ fun ByteBuf.readToByteArray(length: Int): ByteArray {
     readBytes(bytes)
     return bytes
 }
-fun ByteBuf.writeMagic(): ByteBuf = writeBytes(Magic.BYTES)
-fun ByteBuf.readMagic(): Magic = Magic.verify(readToByteArray(Magic.BYTES.size))

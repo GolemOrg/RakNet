@@ -1,9 +1,12 @@
 package raknet
 
+import io.netty.buffer.ByteBuf
+import raknet.codec.Codable
+import raknet.packet.readToByteArray
 import kotlin.collections.ArrayList
 
 
-object Magic {
+object Magic : Codable{
 
     val BYTES = byteArrayOf(
         0x00.toByte(),
@@ -29,7 +32,17 @@ object Magic {
         require(bytes.contentEquals(BYTES)) { "Input bytes must match" }
         return magic
     }
+
+    override fun encode(buffer: ByteBuf): ByteBuf {
+        return buffer.writeMagic()
+    }
+
+    override fun decode(buffer: ByteBuf): Magic {
+        return buffer.readMagic()
+    }
 }
+fun ByteBuf.writeMagic(): ByteBuf = writeBytes(Magic.BYTES)
+fun ByteBuf.readMagic(): Magic = Magic.verify(readToByteArray(Magic.BYTES.size))
 
 data class Identifier(val values: ArrayList<Any>) {
 
