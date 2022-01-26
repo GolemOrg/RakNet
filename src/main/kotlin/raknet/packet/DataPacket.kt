@@ -33,9 +33,3 @@ abstract class DataPacket(private val id: Short) : Packet {
     }
 
 }
-
-fun ByteBuf.readToByteArray(length: Int): ByteArray {
-    val bytes = ByteArray(length)
-    readBytes(bytes)
-    return bytes
-}
