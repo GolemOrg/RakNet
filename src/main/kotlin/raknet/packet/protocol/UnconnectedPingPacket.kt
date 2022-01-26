@@ -8,7 +8,7 @@ import raknet.packet.PacketType
 
 class UnconnectedPingPacket(
     var time: Long,
-    var magic: Magic = Magic,
+    var magic: Magic,
     var clientGuid: Long
 ): DataPacket(PacketType.UNCONNECTED_PING.id()) {
 

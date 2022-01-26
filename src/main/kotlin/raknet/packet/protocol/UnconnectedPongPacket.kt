@@ -9,7 +9,7 @@ import raknet.packet.PacketType
 class UnconnectedPongPacket constructor(
     var pingId: Long,
     var guid: Long,
-    var magic: Magic = Magic,
+    var magic: Magic,
     var serverName: String
     ): DataPacket(PacketType.UNCONNECTED_PONG.id()) {
 

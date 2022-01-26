@@ -3,6 +3,7 @@ package raknet.handler
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
 import io.netty.channel.socket.DatagramPacket
+import raknet.Magic
 import raknet.packet.PacketType
 import raknet.packet.protocol.UnconnectedPingPacket
 import raknet.packet.protocol.UnconnectedPongPacket
@@ -24,6 +25,7 @@ class IncomingDataHandler constructor(private val handler: NetworkHandler): Simp
                 handler.server.log("Received packet $ping from address ${msg.sender()}")
                 val response = UnconnectedPongPacket(
                     pingId = ping.time,
+                    magic = Magic,
                     guid = handler.server.guid.mostSignificantBits,
                     serverName = handler.server.identifier.toString(),
                 )
