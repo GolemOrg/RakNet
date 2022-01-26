@@ -2,9 +2,9 @@ package raknet.packet.protocol
 
 import io.netty.buffer.ByteBuf
 import raknet.Magic
+import raknet.Magic.readMagic
 import raknet.packet.DataPacket
 import raknet.packet.PacketType
-import raknet.readMagic
 
 class UnconnectedPingPacket(
     var time: Long,
