@@ -2,7 +2,6 @@ package raknet
 
 import io.netty.buffer.ByteBuf
 import raknet.codec.Codable
-import raknet.packet.readToByteArray
 import kotlin.collections.ArrayList
 
 
@@ -43,6 +42,11 @@ object Magic : Codable{
 }
 fun ByteBuf.writeMagic(): ByteBuf = writeBytes(Magic.BYTES)
 fun ByteBuf.readMagic(): Magic = Magic.verify(readToByteArray(Magic.BYTES.size))
+fun ByteBuf.readToByteArray(length: Int): ByteArray {
+    val bytes = ByteArray(length)
+    readBytes(bytes)
+    return bytes
+}
 
 data class Identifier(val values: ArrayList<Any>) {
 

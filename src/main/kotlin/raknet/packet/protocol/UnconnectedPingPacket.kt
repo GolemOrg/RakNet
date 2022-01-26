@@ -4,7 +4,7 @@ import io.netty.buffer.ByteBuf
 import raknet.Magic
 import raknet.packet.DataPacket
 import raknet.packet.PacketType
-import raknet.packet.readMagic
+import raknet.readMagic
 
 class UnconnectedPingPacket(
     var time: Long,
