@@ -1,5 +1,6 @@
 package raknet
 
+import io.netty.util.ResourceLeakDetector
 import raknet.connection.Connection
 import raknet.handler.NetworkHandler
 import java.net.InetSocketAddress
@@ -13,7 +14,22 @@ class Server(
     private var verbose: Boolean = false,
 ) {
 
-    val guid = UUID.randomUUID()
+    init {
+        ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.PARANOID)
+    }
+
+    val guid: UUID = UUID.randomUUID()
+    val identifier: Identifier = Identifier(arrayListOf(
+        "Test Server",
+        475,
+        "1.18.0",
+        0,
+        100,
+        guid.mostSignificantBits,
+        "raknet-kt",
+        "Creative"
+    ))
+
     private val handler = NetworkHandler(this)
     private val connections: HashMap<InetSocketAddress, Connection> = HashMap()
     var running: Boolean = true
