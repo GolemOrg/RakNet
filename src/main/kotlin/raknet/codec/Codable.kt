@@ -10,8 +10,8 @@ interface Codable {
 
 }
 
-fun Any?.encode(buffer: ByteBuf): ByteBuf {
-    return when (this) {
+fun Any?.encode(buffer: ByteBuf) {
+    when (this) {
         is Byte -> buffer.writeByte(this as Int)
         is Short -> buffer.writeShort(this as Int)
         is Int -> buffer.writeInt(this)
@@ -21,11 +21,10 @@ fun Any?.encode(buffer: ByteBuf): ByteBuf {
         is String -> {
             buffer.writeShort(this.length)
             buffer.writeCharSequence(this, Charsets.UTF_8)
-            return buffer
         }
         is ByteArray -> buffer.writeBytes(this)
         is Codable -> this.encode(buffer)
-        // Just return the buffer as is
-        else -> buffer
+        // Don't worry about other cases
+        else -> {}
     }
 }

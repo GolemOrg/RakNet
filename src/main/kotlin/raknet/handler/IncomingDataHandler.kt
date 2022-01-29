@@ -4,14 +4,16 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
 import io.netty.channel.socket.DatagramPacket
 import raknet.Magic
+import raknet.packet.DataPacket
 import raknet.packet.PacketType
 import raknet.packet.protocol.UnconnectedPingPacket
 import raknet.packet.protocol.UnconnectedPongPacket
+import java.net.InetSocketAddress
 
 class IncomingDataHandler constructor(private val handler: NetworkHandler): SimpleChannelInboundHandler<DatagramPacket>() {
 
     override fun channelRead0(ctx: ChannelHandlerContext, msg: DatagramPacket) {
-        val connection = msg.sender()
+        val sender = msg.sender()
         val buffer = msg.content()
         // Capture buffer data and transform it into a packet if possible
         // We could use a packet factory here, but I'm not sure if that's the best avenue to take at the moment
@@ -22,22 +24,33 @@ class IncomingDataHandler constructor(private val handler: NetworkHandler): Simp
         when(type) {
             PacketType.UNCONNECTED_PING -> {
                 val ping = UnconnectedPingPacket.from(buffer)
-                handler.server.log("Received packet $ping from address ${msg.sender()}")
                 val response = UnconnectedPongPacket(
                     pingId = ping.time,
                     magic = Magic,
                     guid = handler.server.guid.mostSignificantBits,
                     serverName = handler.server.identifier.toString(),
                 )
-                ctx.write(DatagramPacket(response.prepare(), connection))
-                handler.server.log("Sent pong back to address ${msg.sender()}")
+                sendPacket(ctx, response, sender)
             }
-            else -> {}
+            PacketType.CONNECTED_PING -> {
+
+            }
+            PacketType.OPEN_CONNECTION_REQUEST_1 -> {
+
+            }
+            PacketType.OPEN_CONNECTION_REQUEST_2 -> {
+
+            }
+            else -> throw RuntimeException("Encountered unexpected packet type: $type")
         }
     }
 
-    override fun channelReadComplete(ctx: ChannelHandlerContext?) {
-        ctx?.flush()
+    fun sendPacket(ctx: ChannelHandlerContext, packet: DataPacket, address: InetSocketAddress) {
+        println("Sending packet $packet to address $address")
+        ctx.writeAndFlush(DatagramPacket(
+            packet.prepare(),
+            address
+        ))
     }
 
     override fun exceptionCaught(ctx: ChannelHandlerContext?, cause: Throwable?) {
