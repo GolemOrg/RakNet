@@ -5,7 +5,9 @@ import io.netty.buffer.Unpooled
 
 class TestPacketWithoutAuto(val testLong: Long, val testString: String, val testRandom: Int): DataPacket(0xEF) {
 
-    override fun decode(buffer: ByteBuf) {}
+    override fun encodeOrder(): Array<Any> {
+        return arrayOf(testLong, testString, testRandom) // Unused as we override encode
+    }
 
     override fun encode(): ByteArray {
         val buffer: ByteBuf = Unpooled.buffer()

@@ -37,6 +37,14 @@ class NetworkHandler(val server: Server) {
         }
     }
 
+    fun handleWithoutSession() {
+
+    }
+
+    fun handleWithSession() {
+
+    }
+
     fun shutdown() {
         group.shutdownGracefully()
     }

@@ -1,6 +1,7 @@
 package raknet.codec
 
 import io.netty.buffer.ByteBuf
+import raknet.readToByteArray
 
 interface Codable {
 
@@ -8,6 +9,26 @@ interface Codable {
 
     fun decode(buffer: ByteBuf): Any
 
+}
+
+fun Any?.decode(buffer: ByteBuf): Any? {
+    return when(this) {
+        is Byte -> buffer.readByte()
+        is Short -> buffer.readShort()
+        is Int -> buffer.readInt()
+        is Long -> buffer.readLong()
+        is Float -> buffer.readFloat()
+        is Double -> buffer.readDouble()
+        is Char -> buffer.readChar()
+        is Boolean -> buffer.readBoolean()
+        is String -> {
+            val length = buffer.readShort()
+            return buffer.readCharSequence(length.toInt(), Charsets.UTF_8).toString()
+        }
+        is ByteArray -> buffer.readToByteArray(this.size)
+        is Codable -> this.decode(buffer)
+        else -> null
+    }
 }
 
 fun Any?.encode(buffer: ByteBuf) {

@@ -5,7 +5,7 @@ import raknet.codec.Codable
 
 object Magic : Codable {
 
-    val bytes = byteArrayOf(
+    private val bytes = byteArrayOf(
         0x00.toByte(),
         0xff.toByte(),
         0xff.toByte(),
@@ -24,10 +24,10 @@ object Magic : Codable {
         0x78.toByte()
     )
 
-    val size
+    private val size
         get() = bytes.size
 
-    fun verify(bytes: ByteArray): Magic {
+    private fun verify(bytes: ByteArray): Magic {
         val magic = Magic
         require(bytes.contentEquals(Magic.bytes)) { "Input bytes must match" }
         return magic
