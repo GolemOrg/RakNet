@@ -16,7 +16,7 @@ class TestPacketWithAuto(val testLong: Long, val testString: String, val testRan
         return buffer.array().clone()
     }
 
-    fun encodeOrder(): Array<Any> {
+    override fun encodeOrder(): Array<Any> {
         return arrayOf(testLong, testString, testRandom)
     }
 }

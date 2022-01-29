@@ -1,4 +1,4 @@
-package raknet.packet.protocol
+package raknet.packet.protocol.unconnected
 
 import io.netty.buffer.ByteBuf
 import raknet.Magic
@@ -12,8 +12,8 @@ class UnconnectedPingPacket(
     var clientGuid: Long
 ): DataPacket(PacketType.UNCONNECTED_PING.id()) {
 
-    override fun decode(buffer: ByteBuf) {
-
+    override fun encodeOrder(): Array<Any> {
+        return arrayOf(time, magic, clientGuid)
     }
 
     companion object {
