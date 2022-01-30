@@ -19,14 +19,14 @@ data class Record(
         if(!isSingle) buffer.writeInt(endSequenceNumber!!.toInt())
     }
 
-    override fun decode(buffer: ByteBuf): Any = Record(
+    override fun decode(buffer: ByteBuf) = Record(
         isSingle = buffer.readBoolean(),
         sequenceNumber = buffer.readInt().toUInt(),
         endSequenceNumber = if(!isSingle) buffer.readInt().toUInt() else null
     )
 
     companion object {
-        fun from(sequenceNumber: UIntLE, endSequenceNumber: UIntLE? = null): Record = Record(
+        fun from(sequenceNumber: UIntLE, endSequenceNumber: UIntLE? = null) = Record(
             isSingle = endSequenceNumber == null,
             sequenceNumber = sequenceNumber,
             endSequenceNumber = endSequenceNumber
