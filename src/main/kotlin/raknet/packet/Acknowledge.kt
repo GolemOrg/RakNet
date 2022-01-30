@@ -33,7 +33,7 @@ data class Record(
         )
     }
 
-    override fun toString(): String = "Record(isSingle=$isSingle, sequenceNumber=$sequenceNumber, endSequenceNumber=$endSequenceNumber)"
+    override fun toString() = "Record(isSingle=$isSingle, sequenceNumber=$sequenceNumber, endSequenceNumber=$endSequenceNumber)"
 }
 
 sealed class Base(id: Short, val recordCount: Short, val record: Record): ConnectedPacket(id) {
@@ -41,8 +41,8 @@ sealed class Base(id: Short, val recordCount: Short, val record: Record): Connec
 }
 
 class Acknowledge(recordCount: Short, record: Record): Base(PacketType.ACK.id(), recordCount, record) {
-    override fun toString(): String = "Acknowledge(recordCount=$recordCount, record=$record)"
+    override fun toString() = "Acknowledge(recordCount=$recordCount, record=$record)"
 }
 class NAcknowledge(recordCount: Short, record: Record): Base(PacketType.NAK.id(), recordCount, record) {
-    override fun toString(): String = "NAcknowledge(recordCount=$recordCount, record=$record)"
+    override fun toString() = "NAcknowledge(recordCount=$recordCount, record=$record)"
 }

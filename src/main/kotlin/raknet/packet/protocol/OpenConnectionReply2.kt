@@ -19,7 +19,7 @@ class OpenConnectionReply2(
     override fun encodeOrder(): Array<Any> = arrayOf(magic, serverGuid, clientAddress, mtuSize, encryptionEnabled)
 
     companion object {
-        fun from(buffer: ByteBuf): OpenConnectionReply2 = OpenConnectionReply2(
+        fun from(buffer: ByteBuf) = OpenConnectionReply2(
             buffer.readMagic(),
             buffer.readLong(),
             buffer.readAddress(),
@@ -28,5 +28,5 @@ class OpenConnectionReply2(
         )
     }
 
-    override fun toString(): String = "OpenConnectionReply2Packet(magic=$magic, serverGuid=$serverGuid, clientAddress=$clientAddress, mtuSize=$mtuSize, encryptionEnabled=$encryptionEnabled)"
+    override fun toString() = "OpenConnectionReply2Packet(magic=$magic, serverGuid=$serverGuid, clientAddress=$clientAddress, mtuSize=$mtuSize, encryptionEnabled=$encryptionEnabled)"
 }

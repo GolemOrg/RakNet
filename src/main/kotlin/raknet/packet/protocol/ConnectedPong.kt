@@ -12,8 +12,8 @@ class ConnectedPong(
     override fun encodeOrder(): Array<Any> = arrayOf(pingTime, pongTime)
 
     companion object {
-        fun from(buffer: ByteBuf): ConnectedPong = ConnectedPong(buffer.readLong(), buffer.readLong())
+        fun from(buffer: ByteBuf) = ConnectedPong(buffer.readLong(), buffer.readLong())
     }
 
-    override fun toString(): String  = "ConnectedPongPacket(pingTime=$pingTime, pongTime=$pongTime)"
+    override fun toString()  = "ConnectedPongPacket(pingTime=$pingTime, pongTime=$pongTime)"
 }

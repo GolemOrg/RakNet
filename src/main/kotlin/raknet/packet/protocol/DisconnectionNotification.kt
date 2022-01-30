@@ -7,5 +7,5 @@ class DisconnectionNotification : ConnectedPacket(PacketType.DISCONNECTION_NOTIF
 
     override fun encodeOrder(): Array<Any> = arrayOf()
 
-    override fun toString(): String = "DisconnectionNotification()"
+    override fun toString() = "DisconnectionNotification()"
 }

@@ -36,7 +36,7 @@ object Magic : Codable {
         buffer.writeMagic()
     }
 
-    override fun decode(buffer: ByteBuf): Magic = buffer.readMagic()
+    override fun decode(buffer: ByteBuf) = buffer.readMagic()
 
     fun ByteBuf.writeMagic(): ByteBuf = writeBytes(bytes)
     fun ByteBuf.readMagic(): Magic = verify(readToByteArray(size))
