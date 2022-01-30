@@ -1,6 +1,7 @@
 package raknet
 
 import io.netty.buffer.ByteBuf
+import io.netty.buffer.ByteBufAllocator
 import raknet.enums.Flag
 import raknet.enums.ReliabilityType
 import kotlin.experimental.and
@@ -23,7 +24,33 @@ class Frame(
         return fragment != null
     }
 
+    fun encode(): ByteBuf {
+        val buffer = ByteBufAllocator.DEFAULT.ioBuffer()
+
+        buffer.writeByte(reliability.flags().toInt())
+        buffer.writeShort(length.toInt().shl(BODY_LENGTH_SHIFT))
+
+        if(reliability.reliable) buffer.writeMediumLE(reliableFrameIndex!!.toInt())
+        if(reliability.sequenced) buffer.writeMediumLE(sequencedFrameIndex!!.toInt())
+        if(reliability.sequenced || reliability.ordered) {
+            buffer.writeMediumLE(order!!.orderIndex.toInt())
+            buffer.writeByte(order.orderChannel.toInt())
+        }
+
+        if(split()) {
+            buffer.writeInt(fragment!!.compoundSize)
+            buffer.writeShort(fragment.compoundId.toInt())
+            buffer.writeByte(fragment.index)
+        }
+        buffer.writeBytes(body)
+
+        return buffer
+    }
+
     companion object {
+
+        const val BODY_LENGTH_SHIFT = 3
+
         fun from(buffer: ByteBuf): Frame {
             val flags: Byte = buffer.readByte()
             val reliability = ReliabilityType.fromRaw(flags)
@@ -31,7 +58,7 @@ class Frame(
             val split = flags.and(Flag.PACKET_PAIR.id().toByte()) != 0.toByte()
 
             // The length is ceil(short) / 8
-            val length = (buffer.readUnsignedShort() + 7) shr 3
+            val length = (buffer.readUnsignedShort() + 7).shr(BODY_LENGTH_SHIFT)
             if(length <= 0) {
                 throw RuntimeException("Payload length must be greater than 0")
             }
@@ -48,8 +75,6 @@ class Frame(
         }
     }
 
-    override fun toString(): String {
-        return "Frame(reliabilityType=$reliability, length=$length, reliableFrameIndex=$reliableFrameIndex, sequencedFrameIndex=$sequencedFrameIndex, order=$order, fragment=$fragment, body=Body(${body.readableBytes()}))"
-    }
+    override fun toString(): String = "Frame(reliabilityType=$reliability, length=$length, reliableFrameIndex=$reliableFrameIndex, sequencedFrameIndex=$sequencedFrameIndex, order=$order, fragment=$fragment, body=Body(${body.readableBytes()}))"
 
 }
