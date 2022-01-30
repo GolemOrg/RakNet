@@ -4,6 +4,7 @@ import io.netty.util.ResourceLeakDetector
 import raknet.connection.Connection
 import raknet.handler.NetworkHandler
 import java.net.InetSocketAddress
+import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.HashMap
 
@@ -61,7 +62,16 @@ class Server(
     /**
      * Logs a message to the console if verbose is enabled
      */
-    fun log(message: String): Unit = if (verbose) println(message) else Unit
+    fun log(message: String, level: String = "INFO") {
+        if (verbose) {
+            println("[%s] [%s] [%s] %s".format(
+                SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(Date()),
+                this::class.simpleName,
+                level,
+                message
+            ))
+        }
+    }
 
     fun getPort(): Int = port
 
