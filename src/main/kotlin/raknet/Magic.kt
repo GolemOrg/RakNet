@@ -41,7 +41,5 @@ object Magic : Codable {
     fun ByteBuf.writeMagic(): ByteBuf = writeBytes(bytes)
     fun ByteBuf.readMagic(): Magic = verify(readToByteArray(size))
 
-    override fun toString(): String {
-        return "Magic()"
-    }
+    override fun toString(): String = "Magic()"
 }
