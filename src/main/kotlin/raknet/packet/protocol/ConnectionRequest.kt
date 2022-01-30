@@ -1,16 +1,15 @@
 package raknet.packet.protocol
 
 import io.netty.buffer.ByteBuf
-import raknet.packet.DataPacket
+import raknet.packet.ConnectedPacket
 import raknet.packet.PacketType
 
 class ConnectionRequest(
     var guid: Long,
     var time: Long,
-): DataPacket(PacketType.CONNECTION_REQUEST.id()) {
-    override fun encodeOrder(): Array<Any> {
-        return arrayOf(guid, time)
-    }
+): ConnectedPacket(PacketType.CONNECTION_REQUEST.id()) {
+
+    override fun encodeOrder(): Array<Any> = arrayOf(guid, time)
 
     companion object {
         fun from(buffer: ByteBuf): ConnectionRequest {
@@ -21,7 +20,5 @@ class ConnectionRequest(
         }
     }
 
-    override fun toString(): String {
-        return "ConnectionRequestPacket(guid=$guid, time=$time)"
-    }
+    override fun toString(): String = "ConnectionRequestPacket(guid=$guid, time=$time)"
 }

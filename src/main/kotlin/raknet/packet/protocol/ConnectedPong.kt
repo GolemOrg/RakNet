@@ -1,17 +1,15 @@
 package raknet.packet.protocol
 
 import io.netty.buffer.ByteBuf
-import raknet.packet.DataPacket
+import raknet.packet.ConnectedPacket
 import raknet.packet.PacketType
 
 class ConnectedPong(
     var pingTime: Long,
     var pongTime: Long
-): DataPacket(PacketType.CONNECTED_PONG.id()) {
+): ConnectedPacket(PacketType.CONNECTED_PONG.id()) {
 
-    override fun encodeOrder(): Array<Any> {
-        return arrayOf(pingTime, pongTime)
-    }
+    override fun encodeOrder(): Array<Any> = arrayOf(pingTime, pongTime)
 
     companion object {
         fun from(buffer: ByteBuf): ConnectedPong {
@@ -22,7 +20,5 @@ class ConnectedPong(
         }
     }
 
-    override fun toString(): String {
-        return "ConnectedPongPacket(pingTime=$pingTime, pongTime=$pongTime)"
-    }
+    override fun toString(): String  = "ConnectedPongPacket(pingTime=$pingTime, pongTime=$pongTime)"
 }
