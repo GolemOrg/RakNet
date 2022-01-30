@@ -29,8 +29,8 @@ class Connection(
         worker.scheduleAtFixedRate(this::tick, 0, TimePeriod.UPDATE.period, TimeUnit.MILLISECONDS)
     }
 
-    private fun log(message: String) {
-        server.log("[Connection: $address] $message")
+    fun log(message: String, level: String = "INFO") {
+        server.log("[Connection: $address] $message", level)
     }
 
     private fun tick() {
