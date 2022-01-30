@@ -5,7 +5,7 @@ import raknet.UIntLE
 import raknet.codec.Codable
 
 data class Record(val isSingle: Boolean, val sequenceNumber: UIntLE, val endSequenceNumber: UIntLE? = null): Codable {
-    init { require(!isSingle && endSequenceNumber == null) { "Record range must have an end sequence number" } }
+    init { if(!isSingle && endSequenceNumber == null) throw IllegalArgumentException("End sequence number must be set for ranged record") }
 
     override fun encode(buffer: ByteBuf) {
         buffer.writeBoolean(isSingle)
