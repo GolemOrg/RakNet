@@ -5,6 +5,7 @@ import raknet.Magic
 import raknet.Magic.readMagic
 import raknet.packet.DataPacket
 import raknet.packet.PacketType
+import raknet.readString
 
 class UnconnectedPong(
     var pingId: Long,
@@ -20,7 +21,7 @@ class UnconnectedPong(
             buffer.readLong(),
             buffer.readLong(),
             buffer.readMagic(),
-            buffer.readCharSequence(buffer.readShort().toInt(), Charsets.UTF_8).toString()
+            buffer.readString()
         )
     }
 

@@ -30,3 +30,5 @@ fun ByteBuf.readToByteArray(length: Int): ByteArray {
     readBytes(bytes)
     return bytes
 }
+
+fun ByteBuf.readString(): String = readCharSequence(readUnsignedShort(), Charsets.UTF_8).toString()
