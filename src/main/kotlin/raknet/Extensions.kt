@@ -5,7 +5,6 @@ import java.net.InetAddress
 import java.net.InetSocketAddress
 import kotlin.experimental.*
 
-
 fun ByteBuf.readAddress(): InetSocketAddress {
     val addressBytes: ByteArray
     val port: Int
