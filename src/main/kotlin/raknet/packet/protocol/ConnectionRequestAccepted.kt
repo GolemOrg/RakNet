@@ -20,15 +20,13 @@ class ConnectionRequestAccepted(
     companion object {
         val DEFAULT_ADDRESSES: Array<InetSocketAddress> = Array(AddressCount.MINECRAFT.count()) { InetSocketAddress("255.255.255.255", 19132) }
 
-        fun from(buffer: ByteBuf): ConnectionRequestAccepted {
-            return ConnectionRequestAccepted(
-                buffer.readAddress(),
-                buffer.readInt(),
-                (0 until AddressCount.MINECRAFT.count()).map { buffer.readAddress() }.toTypedArray(),
-                buffer.readLong(),
-                buffer.readLong()
-            )
-        }
+        fun from(buffer: ByteBuf): ConnectionRequestAccepted = ConnectionRequestAccepted(
+            buffer.readAddress(),
+            buffer.readInt(),
+            (0 until AddressCount.MINECRAFT.count()).map { buffer.readAddress() }.toTypedArray(),
+            buffer.readLong(),
+            buffer.readLong()
+        )
     }
 
     override fun toString(): String = "ConnectionRequestAcceptedPacket(clientAddress=$clientAddress, systemIndex=$systemIndex, internalIds=${internalIds.contentToString()}, requestTime=$requestTime, time=$time)"

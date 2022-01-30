@@ -17,14 +17,12 @@ class OpenConnectionReply1(
 
     companion object {
 
-        fun from(buffer: ByteBuf): OpenConnectionReply1 {
-            return OpenConnectionReply1(
-                buffer.readMagic(),
-                buffer.readLong(),
-                buffer.readBoolean(),
-                buffer.readShort()
-            )
-        }
+        fun from(buffer: ByteBuf): OpenConnectionReply1 = OpenConnectionReply1(
+            buffer.readMagic(),
+            buffer.readLong(),
+            buffer.readBoolean(),
+            buffer.readShort()
+        )
     }
 
     override fun toString(): String = "OpenConnectionReply1Packet(magic=$magic, serverGuid=$serverGuid, useSecurity=$useSecurity, mtuSize=$mtuSize)"
