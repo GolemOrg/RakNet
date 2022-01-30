@@ -6,9 +6,9 @@ import raknet.UIntLE
 import raknet.enums.Flag
 
 class Datagram(
-    private val flags: Array<Flag>,
-    private val sequenceIndex: UIntLE,
-    private val frames: MutableList<Frame>
+    val flags: Array<Flag>,
+    val sequenceIndex: UIntLE,
+    val frames: MutableList<Frame>
 ) {
 
     fun add(frame: Frame) {
