@@ -8,18 +8,20 @@ import raknet.readAddress
 import java.net.InetSocketAddress
 
 class ConnectionRequestAccepted(
-    var address: InetSocketAddress,
+    var clientAddress: InetSocketAddress,
     var systemIndex: Int,
-    var internalIds: Array<InetSocketAddress>,
+    var internalIds: Array<InetSocketAddress> = DEFAULT_ADDRESSES,
     var requestTime: Long,
     var time: Long
 ): DataPacket(PacketType.CONNECTION_REQUEST_ACCEPTED.id()) {
 
     override fun encodeOrder(): Array<Any> {
-        return arrayOf(address, systemIndex, internalIds, requestTime, time)
+        return arrayOf(clientAddress, systemIndex, internalIds, requestTime, time)
     }
 
     companion object {
+        val DEFAULT_ADDRESSES: Array<InetSocketAddress> = Array(AddressCount.MINECRAFT.count()) { InetSocketAddress("255.255.255.255", 19132) }
+
         fun from(buffer: ByteBuf): ConnectionRequestAccepted {
             return ConnectionRequestAccepted(
                 buffer.readAddress(),
@@ -32,6 +34,6 @@ class ConnectionRequestAccepted(
     }
 
     override fun toString(): String {
-        return "ConnectionRequestAcceptedPacket(address=$address, systemIndex=$systemIndex, internalIds=${internalIds.contentToString()}, requestTime=$requestTime, time=$time)"
+        return "ConnectionRequestAcceptedPacket(clientAddress=$clientAddress, systemIndex=$systemIndex, internalIds=${internalIds.contentToString()}, requestTime=$requestTime, time=$time)"
     }
 }

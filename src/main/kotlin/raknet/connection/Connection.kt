@@ -4,18 +4,20 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.nio.NioEventLoopGroup
 import raknet.Server
 import raknet.packet.DataPacket
-import raknet.packet.protocol.DisconnectionNotification
+import raknet.packet.protocol.*
 import java.net.InetSocketAddress
 import java.util.concurrent.TimeUnit
 
 enum class TimePeriod(val period: Long) { UPDATE(10), ACK(50), PING(2_000L), STALE(5_000L), TIMEOUT(30_000L) }
 enum class State { INITIALIZING, CONNECTING, CONNECTED, DISCONNECTED }
+enum class Priority { LOW, MEDIUM, HIGH, IMMEDIATE }
 
 class Connection(
     val address: InetSocketAddress,
     private val server: Server,
     private val context: ChannelHandlerContext,
     private val mtuSize: Short,
+    private val guid: Long,
 ) {
 
     private var state: State = State.INITIALIZING
@@ -27,11 +29,13 @@ class Connection(
         worker.scheduleAtFixedRate(this::tick, 0, TimePeriod.UPDATE.period, TimeUnit.MILLISECONDS)
     }
 
+    private fun log(message: String) {
+        server.log("[Connection: $address] $message")
+    }
 
     private fun tick() {
-
         if(packetQueue.size > 0) {
-            println("Sending ${packetQueue.size} packets")
+            log("Sending ${packetQueue.size} packets")
             packetQueue.forEach {
                 context.write(it)
             }
@@ -42,27 +46,49 @@ class Connection(
     }
 
     fun handle(packet: DataPacket) {
-        println("Received packet: $packet")
+        log("Received packet: $packet")
         when(packet) {
+            is ConnectionRequest -> {
+                state = State.CONNECTING
+
+                send(ConnectionRequestAccepted(
+                    clientAddress = this.address,
+                    systemIndex = 0,
+                    requestTime = packet.time,
+                    time = System.currentTimeMillis(),
+                ))
+            }
+            is NewIncomingConnection -> {
+                state = State.CONNECTED
+            }
             is DisconnectionNotification -> {
-                println("Client disconnected")
                 server.closeConnection(this)
+            }
+            is ConnectedPing -> {
+                log("Latency is " + (System.currentTimeMillis() - packet.time) + "ms")
+                val response = ConnectedPong(
+                    pingTime = packet.time,
+                    pongTime = System.currentTimeMillis(),
+                )
+                send(response)
             }
             else -> {}
         }
     }
 
-    private fun send(packet: DataPacket, immediate: Boolean = false) {
-        if(immediate) {
+    private fun send(packet: DataPacket, priority: Priority = Priority.MEDIUM) {
+        if(priority == Priority.IMMEDIATE) {
             context.writeAndFlush(packet)
         } else {
             packetQueue.add(packet)
         }
     }
 
-    private fun close() {
+    private fun close(reason: String) {
+        log("Closing connection: $reason")
         try {
             context.close()
+            server.closeConnection(this)
             state = State.DISCONNECTED
         } catch(e: Exception) {
             e.printStackTrace()

@@ -9,10 +9,13 @@ import io.netty.channel.socket.DatagramPacket
 import raknet.Magic
 import raknet.Server
 import raknet.connection.Connection
+import raknet.enums.Flag
 import raknet.packet.DataPacket
+import raknet.packet.Datagram
 import raknet.packet.PacketType
 import raknet.packet.protocol.*
 import java.net.InetSocketAddress
+import kotlin.experimental.and
 
 class IncomingDataHandler(private val server: Server): SimpleChannelInboundHandler<DatagramPacket>() {
 
@@ -23,11 +26,8 @@ class IncomingDataHandler(private val server: Server): SimpleChannelInboundHandl
         // We could use a packet factory here, but I'm not sure if that's the best avenue to take at the moment
         val id = buffer.readUnsignedByte()
         val type: PacketType? = PacketType.find(id)
-        if(type == null) {
-            println("Received unknown packet of type $id from $sender")
-            return
-        }
         if(!server.hasConnection(sender)) {
+            if(type == null) return
             val response = handleUnconnected(ctx, type, buffer, sender)
             if (response == null) {
                 println("Received unconnected packet of type $id from $sender")
@@ -35,19 +35,30 @@ class IncomingDataHandler(private val server: Server): SimpleChannelInboundHandl
             }
             ctx.sendPacket(sender, response)
         } else {
-            val packet: DataPacket = when(type) {
-                PacketType.CONNECTION_REQUEST -> ConnectionRequest.from(buffer)
-                PacketType.NEW_INCOMING_CONNECTION -> NewIncomingConnection.from(buffer)
-                PacketType.DISCONNECTION_NOTIFICATION -> DisconnectionNotification()
-                else -> {
-                    println("Expression did not handle packet of type $type from $sender")
-                    null
-                }
-            } ?: return
-            println("Decoded buffer to $packet")
-            val connection = server.getConnection(sender)
-            connection!!.handle(packet)
+            val connection = server.getConnection(sender)!!
+            if(isDatagram(id)) {
+                val datagram = Datagram.from(id, buffer)
+                println("Received datagram from $sender: $datagram")
+            } else {
+                val packet: DataPacket = when(type) {
+                    PacketType.CONNECTED_PING -> ConnectedPing.from(buffer)
+                    PacketType.CONNECTION_REQUEST -> ConnectionRequest.from(buffer)
+                    PacketType.NEW_INCOMING_CONNECTION -> NewIncomingConnection.from(buffer)
+                    PacketType.DISCONNECTION_NOTIFICATION -> DisconnectionNotification()
+                    else -> {
+                        println("Expression did not handle packet of type $type from $sender")
+                        null
+                    }
+                } ?: return
+                println("Decoded buffer to $packet")
+                connection.handle(packet)
+            }
+
         }
+    }
+
+    private fun isDatagram(id: Short): Boolean {
+        return id and Flag.DATAGRAM.id() != 0.toShort()
     }
 
     private fun handleUnconnected(ctx: ChannelHandlerContext, type: PacketType, buffer: ByteBuf, sender: InetSocketAddress): DataPacket? {
@@ -59,14 +70,6 @@ class IncomingDataHandler(private val server: Server): SimpleChannelInboundHandl
                     magic = Magic,
                     guid = server.guid.mostSignificantBits,
                     serverName = server.identifier.toString(),
-                )
-            }
-            PacketType.CONNECTED_PING -> {
-                val ping = ConnectedPing.from(buffer)
-                println("Latency is " + (System.currentTimeMillis() - ping.time) + "ms")
-                ConnectedPong(
-                    pingTime = ping.time,
-                    pongTime = System.currentTimeMillis(),
                 )
             }
             PacketType.OPEN_CONNECTION_REQUEST_1 -> {
@@ -84,12 +87,13 @@ class IncomingDataHandler(private val server: Server): SimpleChannelInboundHandl
                     context = ctx,
                     server = server,
                     address = sender,
-                    mtuSize = request.mtuSize
+                    mtuSize = request.mtuSize,
+                    guid = request.clientGuid
                 ))
                 OpenConnectionReply2(
                     magic = Magic,
                     serverGuid = server.guid.mostSignificantBits,
-                    mtuSize = request.mtuSize.toShort(),
+                    mtuSize = request.mtuSize,
                     clientAddress = request.serverAddress,
                     encryptionEnabled = false,
                 )
