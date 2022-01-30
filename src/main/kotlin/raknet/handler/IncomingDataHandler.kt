@@ -1,7 +1,6 @@
 package raknet.handler
 
 import io.netty.buffer.ByteBuf
-import io.netty.buffer.ByteBufUtil
 import io.netty.channel.ChannelFuture
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
@@ -28,11 +27,7 @@ class IncomingDataHandler(private val server: Server): SimpleChannelInboundHandl
         val type: PacketType? = PacketType.find(id)
         if(!server.hasConnection(sender)) {
             if(type == null) return
-            val response = handleUnconnected(ctx, type, buffer, sender)
-            if (response == null) {
-                server.log("Received unconnected packet of type $id from $sender", "WARN")
-                return
-            }
+            val response = handleUnconnected(ctx, type, buffer, sender) ?: return
             ctx.sendPacket(sender, response)
         } else {
             val connection = server.getConnection(sender)!!
@@ -41,30 +36,25 @@ class IncomingDataHandler(private val server: Server): SimpleChannelInboundHandl
                 return
             }
             val datagram = Datagram.from(id, buffer)
-            for(frame in datagram.frames) {
-                val frameType = PacketType.find(frame.body.readUnsignedByte())
-                val packet: DataPacket? = when(frameType) {
-                    PacketType.CONNECTED_PING -> ConnectedPing.from(frame.body)
-                    PacketType.CONNECTION_REQUEST -> ConnectionRequest.from(frame.body)
-                    PacketType.NEW_INCOMING_CONNECTION -> NewIncomingConnection.from(frame.body)
+            for (frame in datagram.frames) {
+                val body = frame.body
+                val frameType = body.readUnsignedByte()
+                val packet: DataPacket = when(PacketType.find(frameType)) {
+                    PacketType.CONNECTION_REQUEST -> ConnectionRequest.from(body)
+                    PacketType.NEW_INCOMING_CONNECTION -> NewIncomingConnection.from(body)
                     PacketType.DISCONNECTION_NOTIFICATION -> DisconnectionNotification()
+                    PacketType.CONNECTED_PING -> ConnectedPing.from(body)
                     else -> {
-                        connection.log("Expression did not handle packet of type $frameType from $sender")
-                        null
+                        connection.log("Received unknown packet of type $frameType from $sender")
+                        continue
                     }
-                }
-                if(packet == null) {
-                    connection.log("Received invalid packet of type %02x from $sender".format(frameType))
-                    return
                 }
                 connection.handle(packet)
             }
         }
     }
 
-    private fun isDatagram(id: Short): Boolean {
-        return id and Flag.DATAGRAM.id() != 0.toShort()
-    }
+    private fun isDatagram(id: Short): Boolean = id and Flag.DATAGRAM.id() != 0.toShort()
 
     private fun handleUnconnected(ctx: ChannelHandlerContext, type: PacketType, buffer: ByteBuf, sender: InetSocketAddress): DataPacket? {
         return when(type) {
@@ -110,6 +100,6 @@ class IncomingDataHandler(private val server: Server): SimpleChannelInboundHandl
     override fun exceptionCaught(ctx: ChannelHandlerContext?, cause: Throwable?) {
         cause?.printStackTrace()
     }
-
-    private fun ChannelHandlerContext.sendPacket(address: InetSocketAddress, packet: DataPacket): ChannelFuture = writeAndFlush(DatagramPacket(packet.prepare(), address))
 }
+
+fun ChannelHandlerContext.sendPacket(address: InetSocketAddress, packet: DataPacket): ChannelFuture = writeAndFlush(DatagramPacket(packet.prepare(), address))
