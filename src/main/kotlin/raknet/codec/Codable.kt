@@ -5,7 +5,7 @@ import raknet.readToByteArray
 
 interface Codable {
 
-    fun encode(buffer: ByteBuf): ByteBuf
+    fun encode(buffer: ByteBuf): Unit
 
     fun decode(buffer: ByteBuf): Any
 

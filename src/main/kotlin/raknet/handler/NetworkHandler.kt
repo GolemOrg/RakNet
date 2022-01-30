@@ -8,7 +8,7 @@ import raknet.Server
 import raknet.connection.Connection
 import raknet.packet.DataPacket
 
-class NetworkHandler(val server: Server) {
+class NetworkHandler(private val server: Server) {
     private val port: Int = server.getPort()
     private val group = NioEventLoopGroup()
 
@@ -19,7 +19,7 @@ class NetworkHandler(val server: Server) {
                 .channel(NioDatagramChannel::class.java)
                 .group(group)
                 .option(ChannelOption.SO_REUSEADDR, true)
-                .handler(IncomingDataHandler(this))
+                .handler(IncomingDataHandler(server))
 
             server.log("Created channel handlers")
 
@@ -35,14 +35,6 @@ class NetworkHandler(val server: Server) {
         } finally {
             group.shutdownGracefully()
         }
-    }
-
-    fun handleWithoutSession() {
-
-    }
-
-    fun handleWithSession() {
-
     }
 
     fun shutdown() {
