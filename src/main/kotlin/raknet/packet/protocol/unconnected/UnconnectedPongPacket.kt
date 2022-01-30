@@ -10,8 +10,8 @@ class UnconnectedPongPacket(
     var pingId: Long,
     var guid: Long,
     var magic: Magic,
-    var serverName: String
-    ): DataPacket(PacketType.UNCONNECTED_PONG.id()) {
+    var serverName: String,
+): DataPacket(PacketType.UNCONNECTED_PONG.id()) {
 
     override fun encodeOrder(): Array<Any> {
         return arrayOf(pingId, guid, magic, serverName)

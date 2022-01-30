@@ -4,6 +4,8 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
 import io.netty.channel.socket.DatagramPacket
 import raknet.Magic
+import raknet.Server
+import raknet.connection.Connection
 import raknet.packet.DataPacket
 import raknet.packet.PacketType
 import raknet.packet.protocol.connected.ConnectedPingPacket
@@ -16,7 +18,7 @@ import raknet.packet.protocol.unconnected.UnconnectedPingPacket
 import raknet.packet.protocol.unconnected.UnconnectedPongPacket
 import java.net.InetSocketAddress
 
-class IncomingDataHandler(private val handler: NetworkHandler): SimpleChannelInboundHandler<DatagramPacket>() {
+class IncomingDataHandler(private val server: Server): SimpleChannelInboundHandler<DatagramPacket>() {
 
     override fun channelRead0(ctx: ChannelHandlerContext, msg: DatagramPacket) {
         val sender = msg.sender()
@@ -24,16 +26,20 @@ class IncomingDataHandler(private val handler: NetworkHandler): SimpleChannelInb
         // Capture buffer data and transform it into a packet if possible
         // We could use a packet factory here, but I'm not sure if that's the best avenue to take at the moment
         val id = buffer.readUnsignedByte()
-        val type: PacketType = PacketType.find(id) ?: return
-        println("Received packet $type from $sender")
+        val type: PacketType? = PacketType.find(id)
+        if(type == null) {
+            println("Received unknown packet of type $id from $sender")
+            return
+        }
+
         when(type) {
             PacketType.UNCONNECTED_PING -> {
                 val ping = UnconnectedPingPacket.from(buffer)
                 val response = UnconnectedPongPacket(
                     pingId = ping.time,
                     magic = Magic,
-                    guid = handler.server.guid.mostSignificantBits,
-                    serverName = handler.server.identifier.toString(),
+                    guid = server.guid.mostSignificantBits,
+                    serverName = server.identifier.toString(),
                 )
                 sendPacket(ctx, response, sender)
             }
@@ -49,7 +55,7 @@ class IncomingDataHandler(private val handler: NetworkHandler): SimpleChannelInb
                 val request = OpenConnectionRequest1Packet.from(buffer)
                 val response = OpenConnectionReply1Packet(
                     magic = Magic,
-                    serverGuid = handler.server.guid.mostSignificantBits,
+                    serverGuid = server.guid.mostSignificantBits,
                     useSecurity = false,
                     mtuSize = request.mtuSize,
                 )
@@ -57,9 +63,17 @@ class IncomingDataHandler(private val handler: NetworkHandler): SimpleChannelInb
             }
             PacketType.OPEN_CONNECTION_REQUEST_2 -> {
                 val request = OpenConnectionRequest2Packet.from(buffer)
+
+                val connection = Connection(
+                    context = ctx,
+                    address = sender,
+                    mtuSize = request.mtuSize
+                )
+                server.addConnection(connection)
+
                 val response = OpenConnectionReply2Packet(
                     magic = Magic,
-                    serverGuid = handler.server.guid.mostSignificantBits,
+                    serverGuid = server.guid.mostSignificantBits,
                     mtuSize = request.mtuSize,
                     clientAddress = sender,
                     encryptionEnabled = false,

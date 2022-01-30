@@ -11,7 +11,7 @@ fun ByteBuf.readAddress(): InetSocketAddress {
     val port: Int
     when(val type: Int = readByte().toInt()) {
         4 -> {
-            addressBytes = readToByteArray(4).map { it.inv() and 0xFF.toByte() }.toByteArray()
+            addressBytes = readToByteArray(4).map { it.inv().and(0xFF.toByte()) }.toByteArray()
             port = readUnsignedShort()
         }
         6 -> {

@@ -69,4 +69,16 @@ class Server(
 
     fun getName(): String = name
 
+    fun addConnection(connection: Connection) {
+        connections[connection.address] = connection
+    }
+
+    fun getConnection(address: InetSocketAddress): Connection? = connections[address]
+
+    fun getConnections(): List<Connection> = connections.values.toList()
+
+    fun closeConnection(address: InetSocketAddress) {
+        connections.remove(address)
+    }
+
 }
