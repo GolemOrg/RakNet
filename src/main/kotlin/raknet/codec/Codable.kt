@@ -79,7 +79,7 @@ fun Any?.encode(buffer: ByteBuf) {
         }
         // Don't worry about other cases
         else -> {
-            val type = if(this != null) this.javaClass.name else "null"
+            val type = this?.javaClass!!.simpleName ?: "null"
             println("Encountered unknown type: $type when encoding value to buffer")
         }
     }
