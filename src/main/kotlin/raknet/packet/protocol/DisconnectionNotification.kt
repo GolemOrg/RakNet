@@ -8,4 +8,8 @@ class DisconnectionNotification(): DataPacket(PacketType.DISCONNECTION_NOTIFICAT
     override fun encodeOrder(): Array<Any> {
         return arrayOf()
     }
+
+    override fun toString(): String {
+        return "DisconnectionNotification()"
+    }
 }
