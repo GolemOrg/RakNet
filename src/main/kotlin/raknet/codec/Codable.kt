@@ -77,6 +77,7 @@ fun Any?.encode(buffer: ByteBuf) {
                 }
             }
         }
+        is Array<*> -> this.forEach { it.encode(buffer) }
         // Don't worry about other cases
         else -> {
             val type = this?.javaClass!!.simpleName ?: "null"
