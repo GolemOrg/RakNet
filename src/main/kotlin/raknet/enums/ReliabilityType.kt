@@ -17,6 +17,14 @@ enum class ReliabilityType(
     RELIABLE_WITH_ACK_RECEIPT(true, false, false),
     RELIABLE_ORDERED_WITH_ACK_RECEIPT(true, true, false);
 
+    fun flags(): Byte {
+        var flags = 0
+        if (reliable) flags = flags or RELIABLE_FLAG.toInt()
+        if (ordered) flags = flags or ORDERED_FLAG.toInt()
+        if (sequenced) flags = flags or SEQUENCED_FLAG.toInt()
+        return flags.shl(SHIFT_VALUE).toByte()
+    }
+
     companion object {
 
         /**
