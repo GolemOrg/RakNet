@@ -19,33 +19,30 @@ data class Record(
         if(!isSingle) buffer.writeInt(endSequenceNumber!!.toInt())
     }
 
-    override fun decode(buffer: ByteBuf): Any {
-        return Record(
-            isSingle = buffer.readBoolean(),
-            sequenceNumber = buffer.readInt().toUInt(),
-            endSequenceNumber = if(!isSingle) buffer.readInt().toUInt() else null
-        )
-    }
+    override fun decode(buffer: ByteBuf): Any = Record(
+        isSingle = buffer.readBoolean(),
+        sequenceNumber = buffer.readInt().toUInt(),
+        endSequenceNumber = if(!isSingle) buffer.readInt().toUInt() else null
+    )
 
     companion object {
-        fun from(sequenceNumber: UIntLE, endSequenceNumber: UIntLE? = null): Record {
-            return Record(
-                isSingle = endSequenceNumber == null,
-                sequenceNumber = sequenceNumber,
-                endSequenceNumber = endSequenceNumber
-            )
-        }
+        fun from(sequenceNumber: UIntLE, endSequenceNumber: UIntLE? = null): Record = Record(
+            isSingle = endSequenceNumber == null,
+            sequenceNumber = sequenceNumber,
+            endSequenceNumber = endSequenceNumber
+        )
     }
 
     override fun toString(): String = "Record(isSingle=$isSingle, sequenceNumber=$sequenceNumber, endSequenceNumber=$endSequenceNumber)"
 }
 
-class Acknowledge(val recordCount: Short, val record: Record): ConnectedPacket(PacketType.ACK.id()) {
-
+sealed class Base(id: Short, val recordCount: Short, val record: Record): ConnectedPacket(id) {
     override fun encodeOrder(): Array<Any> = arrayOf(recordCount, record)
-
 }
 
-class NAcknowledge(val recordCount: Short, val record: Record): ConnectedPacket(PacketType.NAK.id()) {
-    override fun encodeOrder(): Array<Any> = arrayOf(recordCount, record)
+class Acknowledge(recordCount: Short, record: Record): Base(PacketType.ACK.id(), recordCount, record) {
+    override fun toString(): String = "Acknowledge(recordCount=$recordCount, record=$record)"
+}
+class NAcknowledge(recordCount: Short, record: Record): Base(PacketType.NAK.id(), recordCount, record) {
+    override fun toString(): String = "NAcknowledge(recordCount=$recordCount, record=$record)"
 }
