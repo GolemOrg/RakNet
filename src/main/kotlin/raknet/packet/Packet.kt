@@ -14,7 +14,7 @@ import io.netty.buffer.ByteBuf
  */
 interface Packet {
 
-    fun encode(): ByteArray
+    fun encode(): ByteBuf
 
     fun decode(buffer: ByteBuf)
 

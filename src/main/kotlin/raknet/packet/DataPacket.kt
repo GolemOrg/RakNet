@@ -1,15 +1,15 @@
 package raknet.packet
 
 import io.netty.buffer.ByteBuf
-import io.netty.buffer.Unpooled
+import io.netty.buffer.ByteBufAllocator
 import raknet.codec.encode
 
-abstract class DataPacket(private val id: Short) : Packet {
+abstract class DataPacket(val id: Short) : Packet {
 
-    override fun encode(): ByteArray {
-        val buffer = Unpooled.buffer()
+    override fun encode(): ByteBuf {
+        val buffer = ByteBufAllocator.DEFAULT.ioBuffer()
         encodeOrder().forEach { it.encode(buffer) }
-        return buffer.array().clone()
+        return buffer
     }
 
     override fun decode(buffer: ByteBuf) {
@@ -20,9 +20,15 @@ abstract class DataPacket(private val id: Short) : Packet {
     abstract fun encodeOrder(): Array<Any>
 
     fun prepare(): ByteBuf {
-        return Unpooled.buffer()
-            .writeByte(id.toInt())
-            .writeBytes(encode())
+        val encoded = encode()
+        try {
+            return ByteBufAllocator.DEFAULT.ioBuffer()
+                .writeByte(id.toInt())
+                .writeBytes(encoded)
+        } finally {
+            encoded.release()
+        }
+
     }
 
     override fun toString(): String {

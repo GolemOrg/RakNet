@@ -2,7 +2,9 @@ package raknet.connection
 
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.nio.NioEventLoopGroup
+import raknet.Server
 import raknet.packet.DataPacket
+import raknet.packet.protocol.DisconnectionNotification
 import java.net.InetSocketAddress
 import java.util.concurrent.TimeUnit
 
@@ -11,8 +13,9 @@ enum class State { INITIALIZING, CONNECTING, CONNECTED, DISCONNECTED }
 
 class Connection(
     val address: InetSocketAddress,
+    private val server: Server,
     private val context: ChannelHandlerContext,
-    private val mtuSize: Int,
+    private val mtuSize: Short,
 ) {
 
     private var state: State = State.INITIALIZING
@@ -38,8 +41,15 @@ class Connection(
 
     }
 
-    private fun handle(packet: DataPacket) {
-
+    fun handle(packet: DataPacket) {
+        println("Received packet: $packet")
+        when(packet) {
+            is DisconnectionNotification -> {
+                println("Client disconnected")
+                server.closeConnection(this)
+            }
+            else -> {}
+        }
     }
 
     private fun send(packet: DataPacket, immediate: Boolean = false) {

@@ -1,6 +1,7 @@
 package raknet.handler
 
 import io.netty.buffer.ByteBuf
+import io.netty.buffer.ByteBufUtil
 import io.netty.channel.ChannelFuture
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
@@ -10,14 +11,7 @@ import raknet.Server
 import raknet.connection.Connection
 import raknet.packet.DataPacket
 import raknet.packet.PacketType
-import raknet.packet.protocol.ConnectedPing
-import raknet.packet.protocol.ConnectedPong
-import raknet.packet.protocol.OpenConnectionReply1
-import raknet.packet.protocol.OpenConnectionReply2
-import raknet.packet.protocol.OpenConnectionRequest1
-import raknet.packet.protocol.OpenConnectionRequest2
-import raknet.packet.protocol.UnconnectedPing
-import raknet.packet.protocol.UnconnectedPong
+import raknet.packet.protocol.*
 import java.net.InetSocketAddress
 
 class IncomingDataHandler(private val server: Server): SimpleChannelInboundHandler<DatagramPacket>() {
@@ -41,8 +35,18 @@ class IncomingDataHandler(private val server: Server): SimpleChannelInboundHandl
             }
             ctx.sendPacket(sender, response)
         } else {
+            val packet: DataPacket = when(type) {
+                PacketType.CONNECTION_REQUEST -> ConnectionRequest.from(buffer)
+                PacketType.NEW_INCOMING_CONNECTION -> NewIncomingConnection.from(buffer)
+                PacketType.DISCONNECTION_NOTIFICATION -> DisconnectionNotification()
+                else -> {
+                    println("Expression did not handle packet of type $type from $sender")
+                    null
+                }
+            } ?: return
+            println("Decoded buffer to $packet")
             val connection = server.getConnection(sender)
-
+            connection!!.handle(packet)
         }
     }
 
@@ -67,27 +71,26 @@ class IncomingDataHandler(private val server: Server): SimpleChannelInboundHandl
             }
             PacketType.OPEN_CONNECTION_REQUEST_1 -> {
                 val request = OpenConnectionRequest1.from(buffer)
-                println("Received first request with details: $request")
                 OpenConnectionReply1(
                     magic = Magic,
                     serverGuid = server.guid.mostSignificantBits,
                     useSecurity = false,
-                    mtuSize = request.mtuSize,
+                    mtuSize = (request.mtuSize + 28).toShort(),
                 )
             }
             PacketType.OPEN_CONNECTION_REQUEST_2 -> {
                 val request = OpenConnectionRequest2.from(buffer)
-                println("Received seconds request with details: $request")
                 server.addConnection(Connection(
                     context = ctx,
+                    server = server,
                     address = sender,
                     mtuSize = request.mtuSize
                 ))
                 OpenConnectionReply2(
                     magic = Magic,
                     serverGuid = server.guid.mostSignificantBits,
-                    mtuSize = request.mtuSize,
-                    clientAddress = sender,
+                    mtuSize = request.mtuSize.toShort(),
+                    clientAddress = request.serverAddress,
                     encryptionEnabled = false,
                 )
             }
@@ -99,5 +102,11 @@ class IncomingDataHandler(private val server: Server): SimpleChannelInboundHandl
         cause?.printStackTrace()
     }
 
-    private fun ChannelHandlerContext.sendPacket(address: InetSocketAddress, packet: DataPacket): ChannelFuture = writeAndFlush(DatagramPacket(packet.prepare(), address))
+    private fun ChannelHandlerContext.sendPacket(address: InetSocketAddress, packet: DataPacket): ChannelFuture {
+        val preparedPacket = packet.prepare()
+        if(packet is OpenConnectionReply1 || packet is OpenConnectionReply2) {
+            println("Packet buffer for packet $packet: ${ByteBufUtil.hexDump(preparedPacket)}")
+        }
+        return writeAndFlush(DatagramPacket(preparedPacket, address))
+    }
 }

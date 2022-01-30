@@ -9,7 +9,7 @@ import raknet.packet.PacketType
 class OpenConnectionRequest1(
     var magic: Magic,
     var protocolVersion: Int,
-    var mtuSize: Int
+    var mtuSize: Short
 ): DataPacket(PacketType.OPEN_CONNECTION_REQUEST_1.id()) {
 
     override fun encodeOrder(): Array<Any> {
@@ -21,7 +21,7 @@ class OpenConnectionRequest1(
             return OpenConnectionRequest1(
                 buffer.readMagic(),
                 buffer.readInt(),
-                buffer.readInt()
+                buffer.readableBytes().toShort()
             )
         }
     }

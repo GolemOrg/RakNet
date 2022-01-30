@@ -83,4 +83,8 @@ class Server(
         connections.remove(address)
     }
 
+    fun closeConnection(connection: Connection) {
+        connections.remove(connection.address)
+    }
+
 }
