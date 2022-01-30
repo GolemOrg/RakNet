@@ -1,10 +1,10 @@
-package raknet.packet.protocol.connected.connection
+package raknet.packet.protocol
 
 import io.netty.buffer.ByteBuf
 import raknet.packet.DataPacket
 import raknet.packet.PacketType
 
-class ConnectionRequestPacket(
+class ConnectionRequest(
     var guid: Long,
     var time: Long,
 ): DataPacket(PacketType.CONNECTION_REQUEST.id()) {
@@ -13,8 +13,8 @@ class ConnectionRequestPacket(
     }
 
     companion object {
-        fun from(data: ByteBuf): ConnectionRequestPacket {
-            return ConnectionRequestPacket(
+        fun from(data: ByteBuf): ConnectionRequest {
+            return ConnectionRequest(
                 data.readLong(),
                 data.readLong()
             )

@@ -1,9 +1,9 @@
-package raknet.packet.protocol.connected
+package raknet.packet.protocol
 
 import raknet.packet.DataPacket
 import raknet.packet.PacketType
 
-class DisconnectionNotificationPacket(): DataPacket(PacketType.DISCONNECTION_NOTIFICATION.id()) {
+class DisconnectionNotification(): DataPacket(PacketType.DISCONNECTION_NOTIFICATION.id()) {
 
     override fun encodeOrder(): Array<Any> {
         return arrayOf()

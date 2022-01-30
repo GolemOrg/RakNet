@@ -18,6 +18,7 @@ class Connection(
     private var state: State = State.INITIALIZING
     // TODO: Listeners
     private var worker: NioEventLoopGroup = NioEventLoopGroup()
+    private val packetQueue: MutableList<DataPacket> = mutableListOf()
 
     init {
         worker.scheduleAtFixedRate(this::tick, 0, TimePeriod.UPDATE.period, TimeUnit.MILLISECONDS)
@@ -26,10 +27,27 @@ class Connection(
 
     private fun tick() {
 
+        if(packetQueue.size > 0) {
+            println("Sending ${packetQueue.size} packets")
+            packetQueue.forEach {
+                context.write(it)
+            }
+            context.flush()
+            packetQueue.clear()
+        }
+
     }
 
     private fun handle(packet: DataPacket) {
 
+    }
+
+    private fun send(packet: DataPacket, immediate: Boolean = false) {
+        if(immediate) {
+            context.writeAndFlush(packet)
+        } else {
+            packetQueue.add(packet)
+        }
     }
 
     private fun close() {

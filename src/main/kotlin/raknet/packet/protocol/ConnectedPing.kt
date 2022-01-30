@@ -1,10 +1,10 @@
-package raknet.packet.protocol.connected
+package raknet.packet.protocol
 
 import io.netty.buffer.ByteBuf
 import raknet.packet.DataPacket
 import raknet.packet.PacketType
 
-class ConnectedPingPacket(
+class ConnectedPing(
     val time: Long
 ): DataPacket(PacketType.CONNECTED_PING.id()) {
 
@@ -13,8 +13,8 @@ class ConnectedPingPacket(
     }
 
     companion object {
-        fun from(buffer: ByteBuf): ConnectedPingPacket {
-            return ConnectedPingPacket(
+        fun from(buffer: ByteBuf): ConnectedPing {
+            return ConnectedPing(
                 buffer.readLong()
             )
         }

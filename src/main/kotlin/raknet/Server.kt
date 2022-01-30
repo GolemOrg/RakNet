@@ -75,6 +75,8 @@ class Server(
 
     fun getConnection(address: InetSocketAddress): Connection? = connections[address]
 
+    fun hasConnection(address: InetSocketAddress): Boolean = connections.containsKey(address)
+
     fun getConnections(): List<Connection> = connections.values.toList()
 
     fun closeConnection(address: InetSocketAddress) {

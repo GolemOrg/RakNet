@@ -1,4 +1,4 @@
-package raknet.packet.protocol.connected.reply
+package raknet.packet.protocol
 
 import io.netty.buffer.ByteBuf
 import raknet.Magic
@@ -6,7 +6,7 @@ import raknet.Magic.readMagic
 import raknet.packet.DataPacket
 import raknet.packet.PacketType
 
-class OpenConnectionReply1Packet(
+class OpenConnectionReply1(
     var magic: Magic,
     var serverGuid: Long,
     var useSecurity: Boolean,
@@ -20,8 +20,8 @@ class OpenConnectionReply1Packet(
 
     companion object {
 
-        fun from(buffer: ByteBuf): OpenConnectionReply1Packet {
-            return OpenConnectionReply1Packet(
+        fun from(buffer: ByteBuf): OpenConnectionReply1 {
+            return OpenConnectionReply1(
                 buffer.readMagic(),
                 buffer.readLong(),
                 buffer.readBoolean(),

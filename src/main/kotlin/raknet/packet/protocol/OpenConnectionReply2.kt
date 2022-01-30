@@ -1,4 +1,4 @@
-package raknet.packet.protocol.connected.reply
+package raknet.packet.protocol
 
 import io.netty.buffer.ByteBuf
 import raknet.Magic
@@ -8,7 +8,7 @@ import raknet.packet.PacketType
 import raknet.readAddress
 import java.net.InetSocketAddress
 
-class OpenConnectionReply2Packet(
+class OpenConnectionReply2(
     var magic: Magic,
     var serverGuid: Long,
     var clientAddress: InetSocketAddress,
@@ -21,8 +21,8 @@ class OpenConnectionReply2Packet(
     }
 
     companion object {
-        fun from(buffer: ByteBuf): OpenConnectionReply2Packet {
-            return OpenConnectionReply2Packet(
+        fun from(buffer: ByteBuf): OpenConnectionReply2 {
+            return OpenConnectionReply2(
                 buffer.readMagic(),
                 buffer.readLong(),
                 buffer.readAddress(),
