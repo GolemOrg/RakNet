@@ -9,13 +9,14 @@ import raknet.Magic
 import raknet.Server
 import raknet.connection.Connection
 import raknet.enums.Flag
-import raknet.packet.DataPacket
-import raknet.packet.Datagram
-import raknet.packet.PacketType
+import raknet.packet.*
 import raknet.packet.protocol.*
 import java.net.InetSocketAddress
 import kotlin.experimental.and
 
+/**
+ * TODO: It may be worth it to split the incoming data handler into UnconnectedHandshakeHandler & ConnectedHandler
+ */
 class IncomingDataHandler(private val server: Server): SimpleChannelInboundHandler<DatagramPacket>() {
 
     override fun channelRead0(ctx: ChannelHandlerContext, msg: DatagramPacket) {
@@ -31,25 +32,31 @@ class IncomingDataHandler(private val server: Server): SimpleChannelInboundHandl
             ctx.sendPacket(sender, response)
         } else {
             val connection = server.getConnection(sender)!!
-            if(!isDatagram(id)) {
-                connection.log("Received non-datagram packet of type $id from $sender")
-                return
-            }
-            val datagram = Datagram.from(id, buffer)
-            for (frame in datagram.frames) {
-                val body = frame.body
-                val frameType = body.readUnsignedByte()
-                val packet: DataPacket = when(PacketType.find(frameType)) {
-                    PacketType.CONNECTION_REQUEST -> ConnectionRequest.from(body)
-                    PacketType.NEW_INCOMING_CONNECTION -> NewIncomingConnection.from(body)
-                    PacketType.DISCONNECTION_NOTIFICATION -> DisconnectionNotification()
-                    PacketType.CONNECTED_PING -> ConnectedPing.from(body)
-                    else -> {
-                        connection.log("Received unknown packet of type $frameType from $sender")
-                        continue
+            when(type) {
+                PacketType.ACK -> connection.handleAck(Acknowledge.from(buffer))
+                PacketType.NACK -> connection.handleNAck(NAcknowledge.from(buffer))
+                else -> {
+                    if(!isDatagram(id)) {
+                        connection.log("Received non-datagram packet of type $id from $sender")
+                        return
+                    }
+                    val datagram = Datagram.from(id, buffer)
+                    for (frame in datagram.frames) {
+                        val body = frame.body
+                        val frameType = body.readUnsignedByte()
+                        val packet: DataPacket = when(PacketType.find(frameType)) {
+                            PacketType.CONNECTION_REQUEST -> ConnectionRequest.from(body)
+                            PacketType.NEW_INCOMING_CONNECTION -> NewIncomingConnection.from(body)
+                            PacketType.DISCONNECTION_NOTIFICATION -> DisconnectionNotification()
+                            PacketType.CONNECTED_PING -> ConnectedPing.from(body)
+                            else -> {
+                                connection.log("Received unknown packet of type $frameType from $sender")
+                                continue
+                            }
+                        }
+                        connection.handle(packet)
                     }
                 }
-                connection.handle(packet)
             }
         }
     }
