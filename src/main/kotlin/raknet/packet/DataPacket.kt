@@ -12,10 +12,11 @@ abstract class DataPacket(val id: Short) : Packet {
         return buffer
     }
 
-    override fun decode(buffer: ByteBuf) {
-        // We don't use decode at the moment as we use Packet.from() as a way to decode the packet
-        // It may be worth a look at using decode in the future
-    }
+    /**
+     * We don't use decode at the moment as we use Packet.from() as a way to decode the packet
+     * It may be worth a look at using decode in the future
+     */
+    override fun decode(buffer: ByteBuf) = Unit
 
     abstract fun encodeOrder(): Array<Any>
 
