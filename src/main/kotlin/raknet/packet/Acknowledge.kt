@@ -1,12 +1,13 @@
 package raknet.packet
 
 import io.netty.buffer.ByteBuf
+import raknet.UIntLE
 import raknet.codec.Codable
 
 data class Record(
     val isSingle: Boolean,
-    val sequenceNumber: Int,
-    val endSequenceNumber: Int? = null
+    val sequenceNumber: UIntLE,
+    val endSequenceNumber: UIntLE? = null
 ): Codable {
     init {
         if(!isSingle && endSequenceNumber == null) throw IllegalArgumentException("Ranged record must have end sequence number")
@@ -14,20 +15,20 @@ data class Record(
 
     override fun encode(buffer: ByteBuf) {
         buffer.writeBoolean(isSingle)
-        buffer.writeInt(sequenceNumber)
-        if(!isSingle) buffer.writeInt(endSequenceNumber!!)
+        buffer.writeInt(sequenceNumber.toInt())
+        if(!isSingle) buffer.writeInt(endSequenceNumber!!.toInt())
     }
 
     override fun decode(buffer: ByteBuf): Any {
         return Record(
             isSingle = buffer.readBoolean(),
-            sequenceNumber = buffer.readInt(),
-            endSequenceNumber = if(!isSingle) buffer.readInt() else null
+            sequenceNumber = buffer.readInt().toUInt(),
+            endSequenceNumber = if(!isSingle) buffer.readInt().toUInt() else null
         )
     }
 
     companion object {
-        fun from(sequenceNumber: Int, endSequenceNumber: Int? = null): Record {
+        fun from(sequenceNumber: UIntLE, endSequenceNumber: UIntLE? = null): Record {
             return Record(
                 isSingle = endSequenceNumber == null,
                 sequenceNumber = sequenceNumber,
