@@ -13,9 +13,7 @@ class OpenConnectionReply1(
     var mtuSize: Short
 ): DataPacket(PacketType.OPEN_CONNECTION_REPLY_1.id()) {
 
-    override fun encodeOrder(): Array<Any> {
-        return arrayOf(magic, serverGuid, useSecurity, mtuSize)
-    }
+    override fun encodeOrder(): Array<Any> = arrayOf(magic, serverGuid, useSecurity, mtuSize)
 
     companion object {
 
@@ -29,7 +27,5 @@ class OpenConnectionReply1(
         }
     }
 
-    override fun toString(): String {
-        return "OpenConnectionReply1Packet(magic=$magic, serverGuid=$serverGuid, useSecurity=$useSecurity, mtuSize=$mtuSize)"
-    }
+    override fun toString(): String = "OpenConnectionReply1Packet(magic=$magic, serverGuid=$serverGuid, useSecurity=$useSecurity, mtuSize=$mtuSize)"
 }

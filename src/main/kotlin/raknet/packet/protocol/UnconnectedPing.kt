@@ -12,9 +12,7 @@ class UnconnectedPing(
     var clientGuid: Long
 ): DataPacket(PacketType.UNCONNECTED_PING.id()) {
 
-    override fun encodeOrder(): Array<Any> {
-        return arrayOf(time, magic, clientGuid)
-    }
+    override fun encodeOrder(): Array<Any> =  arrayOf(time, magic, clientGuid)
 
     companion object {
         fun from(buffer: ByteBuf): UnconnectedPing {
@@ -26,7 +24,5 @@ class UnconnectedPing(
         }
     }
 
-    override fun toString(): String {
-        return "UnconnectedPingPacket(time=$time, clientGuid=$clientGuid)"
-    }
+    override fun toString(): String = "UnconnectedPingPacket(time=$time, clientGuid=$clientGuid)"
 }

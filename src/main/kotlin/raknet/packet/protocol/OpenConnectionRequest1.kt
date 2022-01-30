@@ -12,9 +12,7 @@ class OpenConnectionRequest1(
     var mtuSize: Short
 ): DataPacket(PacketType.OPEN_CONNECTION_REQUEST_1.id()) {
 
-    override fun encodeOrder(): Array<Any> {
-        return arrayOf(magic, protocolVersion, mtuSize)
-    }
+    override fun encodeOrder(): Array<Any> =  arrayOf(magic, protocolVersion, mtuSize)
 
     companion object {
         fun from(buffer: ByteBuf): OpenConnectionRequest1 {
@@ -26,7 +24,5 @@ class OpenConnectionRequest1(
         }
     }
 
-    override fun toString(): String {
-        return "OpenConnectionRequest1Packet(magic=$magic, protcolVersion=$protocolVersion, mtuSize=$mtuSize)"
-    }
+    override fun toString(): String = "OpenConnectionRequest1Packet(magic=$magic, protcolVersion=$protocolVersion, mtuSize=$mtuSize)"
 }

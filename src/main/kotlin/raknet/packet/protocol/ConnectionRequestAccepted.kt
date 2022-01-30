@@ -2,7 +2,7 @@ package raknet.packet.protocol
 
 import io.netty.buffer.ByteBuf
 import raknet.enums.AddressCount
-import raknet.packet.DataPacket
+import raknet.packet.ConnectedPacket
 import raknet.packet.PacketType
 import raknet.readAddress
 import java.net.InetSocketAddress
@@ -13,11 +13,9 @@ class ConnectionRequestAccepted(
     var internalIds: Array<InetSocketAddress> = DEFAULT_ADDRESSES,
     var requestTime: Long,
     var time: Long
-): DataPacket(PacketType.CONNECTION_REQUEST_ACCEPTED.id()) {
+): ConnectedPacket(PacketType.CONNECTION_REQUEST_ACCEPTED.id()) {
 
-    override fun encodeOrder(): Array<Any> {
-        return arrayOf(clientAddress, systemIndex, internalIds, requestTime, time)
-    }
+    override fun encodeOrder(): Array<Any> = arrayOf(clientAddress, systemIndex, internalIds, requestTime, time)
 
     companion object {
         val DEFAULT_ADDRESSES: Array<InetSocketAddress> = Array(AddressCount.MINECRAFT.count()) { InetSocketAddress("255.255.255.255", 19132) }
@@ -33,7 +31,5 @@ class ConnectionRequestAccepted(
         }
     }
 
-    override fun toString(): String {
-        return "ConnectionRequestAcceptedPacket(clientAddress=$clientAddress, systemIndex=$systemIndex, internalIds=${internalIds.contentToString()}, requestTime=$requestTime, time=$time)"
-    }
+    override fun toString(): String = "ConnectionRequestAcceptedPacket(clientAddress=$clientAddress, systemIndex=$systemIndex, internalIds=${internalIds.contentToString()}, requestTime=$requestTime, time=$time)"
 }
