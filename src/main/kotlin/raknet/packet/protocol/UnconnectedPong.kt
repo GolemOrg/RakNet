@@ -1,4 +1,4 @@
-package raknet.packet.protocol.unconnected
+package raknet.packet.protocol
 
 import io.netty.buffer.ByteBuf
 import raknet.Magic
@@ -6,7 +6,7 @@ import raknet.Magic.readMagic
 import raknet.packet.DataPacket
 import raknet.packet.PacketType
 
-class UnconnectedPongPacket(
+class UnconnectedPong(
     var pingId: Long,
     var guid: Long,
     var magic: Magic,
@@ -18,8 +18,8 @@ class UnconnectedPongPacket(
     }
 
     companion object {
-        fun from(buffer: ByteBuf): UnconnectedPongPacket {
-            return UnconnectedPongPacket(
+        fun from(buffer: ByteBuf): UnconnectedPong {
+            return UnconnectedPong(
                 buffer.readLong(),
                 buffer.readLong(),
                 buffer.readMagic(),

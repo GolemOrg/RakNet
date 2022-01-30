@@ -1,5 +1,7 @@
 package raknet.handler
 
+import io.netty.buffer.ByteBuf
+import io.netty.channel.ChannelFuture
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
 import io.netty.channel.socket.DatagramPacket
@@ -8,14 +10,14 @@ import raknet.Server
 import raknet.connection.Connection
 import raknet.packet.DataPacket
 import raknet.packet.PacketType
-import raknet.packet.protocol.connected.ConnectedPingPacket
-import raknet.packet.protocol.connected.ConnectedPongPacket
-import raknet.packet.protocol.connected.reply.OpenConnectionReply1Packet
-import raknet.packet.protocol.connected.reply.OpenConnectionReply2Packet
-import raknet.packet.protocol.connected.request.OpenConnectionRequest1Packet
-import raknet.packet.protocol.connected.request.OpenConnectionRequest2Packet
-import raknet.packet.protocol.unconnected.UnconnectedPingPacket
-import raknet.packet.protocol.unconnected.UnconnectedPongPacket
+import raknet.packet.protocol.ConnectedPing
+import raknet.packet.protocol.ConnectedPong
+import raknet.packet.protocol.OpenConnectionReply1
+import raknet.packet.protocol.OpenConnectionReply2
+import raknet.packet.protocol.OpenConnectionRequest1
+import raknet.packet.protocol.OpenConnectionRequest2
+import raknet.packet.protocol.UnconnectedPing
+import raknet.packet.protocol.UnconnectedPong
 import java.net.InetSocketAddress
 
 class IncomingDataHandler(private val server: Server): SimpleChannelInboundHandler<DatagramPacket>() {
@@ -31,68 +33,71 @@ class IncomingDataHandler(private val server: Server): SimpleChannelInboundHandl
             println("Received unknown packet of type $id from $sender")
             return
         }
+        if(!server.hasConnection(sender)) {
+            val response = handleUnconnected(ctx, type, buffer, sender)
+            if (response == null) {
+                println("Received unconnected packet of type $id from $sender")
+                return
+            }
+            ctx.sendPacket(sender, response)
+        } else {
+            val connection = server.getConnection(sender)
 
-        when(type) {
+        }
+    }
+
+    private fun handleUnconnected(ctx: ChannelHandlerContext, type: PacketType, buffer: ByteBuf, sender: InetSocketAddress): DataPacket? {
+        return when(type) {
             PacketType.UNCONNECTED_PING -> {
-                val ping = UnconnectedPingPacket.from(buffer)
-                val response = UnconnectedPongPacket(
+                val ping = UnconnectedPing.from(buffer)
+                UnconnectedPong(
                     pingId = ping.time,
                     magic = Magic,
                     guid = server.guid.mostSignificantBits,
                     serverName = server.identifier.toString(),
                 )
-                sendPacket(ctx, response, sender)
             }
             PacketType.CONNECTED_PING -> {
-                val ping = ConnectedPingPacket.from(buffer)
-                val response = ConnectedPongPacket(
+                val ping = ConnectedPing.from(buffer)
+                println("Latency is " + (System.currentTimeMillis() - ping.time) + "ms")
+                ConnectedPong(
                     pingTime = ping.time,
                     pongTime = System.currentTimeMillis(),
                 )
-                sendPacket(ctx, response, sender)
             }
             PacketType.OPEN_CONNECTION_REQUEST_1 -> {
-                val request = OpenConnectionRequest1Packet.from(buffer)
-                val response = OpenConnectionReply1Packet(
+                val request = OpenConnectionRequest1.from(buffer)
+                println("Received first request with details: $request")
+                OpenConnectionReply1(
                     magic = Magic,
                     serverGuid = server.guid.mostSignificantBits,
                     useSecurity = false,
                     mtuSize = request.mtuSize,
                 )
-                sendPacket(ctx, response, sender)
             }
             PacketType.OPEN_CONNECTION_REQUEST_2 -> {
-                val request = OpenConnectionRequest2Packet.from(buffer)
-
-                val connection = Connection(
+                val request = OpenConnectionRequest2.from(buffer)
+                println("Received seconds request with details: $request")
+                server.addConnection(Connection(
                     context = ctx,
                     address = sender,
                     mtuSize = request.mtuSize
-                )
-                server.addConnection(connection)
-
-                val response = OpenConnectionReply2Packet(
+                ))
+                OpenConnectionReply2(
                     magic = Magic,
                     serverGuid = server.guid.mostSignificantBits,
                     mtuSize = request.mtuSize,
                     clientAddress = sender,
                     encryptionEnabled = false,
                 )
-                sendPacket(ctx, response, sender)
             }
-            else -> throw RuntimeException("Encountered unexpected packet type: $type")
+            else -> null
         }
-    }
-
-    fun sendPacket(ctx: ChannelHandlerContext, packet: DataPacket, address: InetSocketAddress) {
-        // println("Sending packet $packet to address $address")
-        ctx.writeAndFlush(DatagramPacket(
-            packet.prepare(),
-            address
-        ))
     }
 
     override fun exceptionCaught(ctx: ChannelHandlerContext?, cause: Throwable?) {
         cause?.printStackTrace()
     }
+
+    private fun ChannelHandlerContext.sendPacket(address: InetSocketAddress, packet: DataPacket): ChannelFuture = writeAndFlush(DatagramPacket(packet.prepare(), address))
 }

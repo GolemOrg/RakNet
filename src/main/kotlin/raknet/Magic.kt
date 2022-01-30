@@ -24,8 +24,7 @@ object Magic : Codable {
         0x78.toByte()
     )
 
-    private val size
-        get() = bytes.size
+    private val size get() = bytes.size
 
     private fun verify(bytes: ByteArray): Magic {
         val magic = Magic
@@ -33,13 +32,11 @@ object Magic : Codable {
         return magic
     }
 
-    override fun encode(buffer: ByteBuf): ByteBuf {
-        return buffer.writeMagic()
+    override fun encode(buffer: ByteBuf) {
+        buffer.writeMagic()
     }
 
-    override fun decode(buffer: ByteBuf): Magic {
-        return buffer.readMagic()
-    }
+    override fun decode(buffer: ByteBuf): Magic = buffer.readMagic()
 
     fun ByteBuf.writeMagic(): ByteBuf = writeBytes(bytes)
     fun ByteBuf.readMagic(): Magic = verify(readToByteArray(size))

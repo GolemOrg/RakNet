@@ -1,4 +1,4 @@
-package raknet.packet.protocol.connected.request
+package raknet.packet.protocol
 
 import io.netty.buffer.ByteBuf
 import raknet.Magic
@@ -8,7 +8,7 @@ import raknet.packet.PacketType
 import raknet.readAddress
 import java.net.InetSocketAddress
 
-class OpenConnectionRequest2Packet(
+class OpenConnectionRequest2(
     var magic: Magic,
     var serverAddress: InetSocketAddress,
     var mtuSize: Int,
@@ -20,8 +20,8 @@ class OpenConnectionRequest2Packet(
     }
 
     companion object {
-        fun from(data: ByteBuf): OpenConnectionRequest2Packet {
-            return OpenConnectionRequest2Packet(
+        fun from(data: ByteBuf): OpenConnectionRequest2 {
+            return OpenConnectionRequest2(
                 data.readMagic(),
                 data.readAddress(),
                 data.readUnsignedShort(),

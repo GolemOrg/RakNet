@@ -1,4 +1,4 @@
-package raknet.packet.protocol.connected.request
+package raknet.packet.protocol
 
 import io.netty.buffer.ByteBuf
 import raknet.Magic
@@ -6,7 +6,7 @@ import raknet.Magic.readMagic
 import raknet.packet.DataPacket
 import raknet.packet.PacketType
 
-class OpenConnectionRequest1Packet(
+class OpenConnectionRequest1(
     var magic: Magic,
     var protocolVersion: Int,
     var mtuSize: Int
@@ -17,8 +17,8 @@ class OpenConnectionRequest1Packet(
     }
 
     companion object {
-        fun from(buffer: ByteBuf): OpenConnectionRequest1Packet {
-            return OpenConnectionRequest1Packet(
+        fun from(buffer: ByteBuf): OpenConnectionRequest1 {
+            return OpenConnectionRequest1(
                 buffer.readMagic(),
                 buffer.readInt(),
                 buffer.readInt()

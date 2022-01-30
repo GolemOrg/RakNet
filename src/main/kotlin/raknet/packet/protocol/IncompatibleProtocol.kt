@@ -1,10 +1,10 @@
-package raknet.packet.protocol.connected
+package raknet.packet.protocol
 
 import io.netty.buffer.ByteBuf
 import raknet.packet.DataPacket
 import raknet.packet.PacketType
 
-class IncompatibleProtocolPacket(
+class IncompatibleProtocol(
     var protocol: Int,
     var serverGuid: Long,
 ): DataPacket(PacketType.INCOMPATIBLE_PROTOCOL_VERSION.id()) {
@@ -14,8 +14,8 @@ class IncompatibleProtocolPacket(
     }
 
     companion object {
-        fun from(buffer: ByteBuf): IncompatibleProtocolPacket {
-            return IncompatibleProtocolPacket(
+        fun from(buffer: ByteBuf): IncompatibleProtocol {
+            return IncompatibleProtocol(
                 buffer.readInt(),
                 buffer.readLong()
             )

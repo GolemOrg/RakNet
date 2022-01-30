@@ -1,4 +1,4 @@
-package raknet.packet.protocol.connected.connection
+package raknet.packet.protocol
 
 import io.netty.buffer.ByteBuf
 import raknet.enums.AddressCount
@@ -7,7 +7,7 @@ import raknet.packet.PacketType
 import raknet.readAddress
 import java.net.InetSocketAddress
 
-class ConnectionRequestAcceptedPacket(
+class ConnectionRequestAccepted(
     var address: InetSocketAddress,
     var systemIndex: Int,
     var internalIds: Array<InetSocketAddress>,
@@ -20,8 +20,8 @@ class ConnectionRequestAcceptedPacket(
     }
 
     companion object {
-        fun from(buffer: ByteBuf): ConnectionRequestAcceptedPacket {
-            return ConnectionRequestAcceptedPacket(
+        fun from(buffer: ByteBuf): ConnectionRequestAccepted {
+            return ConnectionRequestAccepted(
                 buffer.readAddress(),
                 buffer.readInt(),
                 (0 until AddressCount.MINECRAFT.count()).map { buffer.readAddress() }.toTypedArray(),

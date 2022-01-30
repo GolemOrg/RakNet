@@ -1,10 +1,10 @@
-package raknet.packet.protocol.connected
+package raknet.packet.protocol
 
 import io.netty.buffer.ByteBuf
 import raknet.packet.DataPacket
 import raknet.packet.PacketType
 
-class ConnectedPongPacket(
+class ConnectedPong(
     var pingTime: Long,
     var pongTime: Long
 ): DataPacket(PacketType.CONNECTED_PONG.id()) {
@@ -14,8 +14,8 @@ class ConnectedPongPacket(
     }
 
     companion object {
-        fun from(buffer: ByteBuf): ConnectedPongPacket {
-            return ConnectedPongPacket(
+        fun from(buffer: ByteBuf): ConnectedPong {
+            return ConnectedPong(
                 buffer.readLong(),
                 buffer.readLong()
             )
