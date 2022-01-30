@@ -6,9 +6,7 @@ import raknet.Frame
 import raknet.Server
 import raknet.enums.ReliabilityType
 import raknet.handler.sendPacket
-import raknet.packet.ConnectedPacket
-import raknet.packet.DataPacket
-import raknet.packet.Datagram
+import raknet.packet.*
 import raknet.packet.protocol.*
 import java.net.InetSocketAddress
 import java.util.concurrent.TimeUnit
@@ -49,6 +47,14 @@ class Connection(
             packetQueue.clear()
         }
 
+    }
+
+    fun handleAck(acknowledge: Acknowledge) {
+        log("Received ACK: $acknowledge")
+    }
+
+    fun handleNAck(nAcknowledge: NAcknowledge) {
+        log("Received NACK: $nAcknowledge")
     }
 
     fun handle(packet: DataPacket) {
