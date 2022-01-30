@@ -11,7 +11,7 @@ import java.net.InetSocketAddress
 class OpenConnectionRequest2(
     var magic: Magic,
     var serverAddress: InetSocketAddress,
-    var mtuSize: Int,
+    var mtuSize: Short,
     var clientGuid: Long,
 ): DataPacket(PacketType.OPEN_CONNECTION_REQUEST_2.id()) {
 
@@ -20,12 +20,12 @@ class OpenConnectionRequest2(
     }
 
     companion object {
-        fun from(data: ByteBuf): OpenConnectionRequest2 {
+        fun from(buffer: ByteBuf): OpenConnectionRequest2 {
             return OpenConnectionRequest2(
-                data.readMagic(),
-                data.readAddress(),
-                data.readUnsignedShort(),
-                data.readLong()
+                buffer.readMagic(),
+                buffer.readAddress(),
+                buffer.readUnsignedShort().toShort(),
+                buffer.readLong()
             )
         }
     }

@@ -2,10 +2,16 @@ package raknet.codec
 
 import io.netty.buffer.ByteBuf
 import raknet.readToByteArray
+import java.net.Inet4Address
+import java.net.Inet6Address
+import java.net.InetAddress
+import java.net.InetSocketAddress
+import kotlin.experimental.and
+import kotlin.experimental.inv
 
 interface Codable {
 
-    fun encode(buffer: ByteBuf): Unit
+    fun encode(buffer: ByteBuf)
 
     fun decode(buffer: ByteBuf): Any
 
@@ -31,10 +37,19 @@ fun Any?.decode(buffer: ByteBuf): Any? {
     }
 }
 
+fun ByteArray.flip(): ByteArray {
+    val result = ByteArray(this.size)
+    for (i in 0 until this.size) {
+        result[i] = (this[i] and 0xFF.toByte()).inv()
+    }
+    return result
+}
+
 fun Any?.encode(buffer: ByteBuf) {
     when (this) {
-        is Byte -> buffer.writeByte(this as Int)
-        is Short -> buffer.writeShort(this as Int)
+        is Byte -> buffer.writeByte(this.toInt())
+        is Boolean -> buffer.writeBoolean(this)
+        is Short -> buffer.writeShort(this.toInt())
         is Int -> buffer.writeInt(this)
         is Long -> buffer.writeLong(this)
         is Float -> buffer.writeFloat(this)
@@ -45,7 +60,27 @@ fun Any?.encode(buffer: ByteBuf) {
         }
         is ByteArray -> buffer.writeBytes(this)
         is Codable -> this.encode(buffer)
+        is InetSocketAddress -> {
+            when (val inner: InetAddress = this.address) {
+                is Inet4Address -> {
+                    buffer.writeByte(4) //IPv4
+                    buffer.writeBytes(inner.address.flip())
+                    buffer.writeShort(this.port)
+                }
+                is Inet6Address -> {
+                    buffer.writeByte(6) // IPv6
+                    buffer.writeShort(10) // AF_INET6
+                    buffer.writeShort(this.port)
+                    buffer.writeInt(0) // Flow info
+                    buffer.writeBytes(inner.address)
+                    buffer.writeInt(inner.scopeId)
+                }
+            }
+        }
         // Don't worry about other cases
-        else -> {}
+        else -> {
+            val type = if(this != null) this.javaClass.name else "null"
+            println("Encountered type: $type when encoding value to buffer")
+        }
     }
 }

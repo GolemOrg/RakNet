@@ -10,9 +10,8 @@ class OpenConnectionReply1(
     var magic: Magic,
     var serverGuid: Long,
     var useSecurity: Boolean,
-    var mtuSize: Int
+    var mtuSize: Short
 ): DataPacket(PacketType.OPEN_CONNECTION_REPLY_1.id()) {
-
 
     override fun encodeOrder(): Array<Any> {
         return arrayOf(magic, serverGuid, useSecurity, mtuSize)
@@ -25,7 +24,7 @@ class OpenConnectionReply1(
                 buffer.readMagic(),
                 buffer.readLong(),
                 buffer.readBoolean(),
-                buffer.readInt()
+                buffer.readShort()
             )
         }
     }

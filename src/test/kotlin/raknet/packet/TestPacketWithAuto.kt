@@ -8,12 +8,12 @@ class TestPacketWithAuto(val testLong: Long, val testString: String, val testRan
 
     override fun decode(buffer: ByteBuf) {}
 
-    override fun encode(): ByteArray {
+    override fun encode(): ByteBuf {
         val buffer: ByteBuf = Unpooled.buffer()
         for (field in encodeOrder()) {
             field.encode(buffer)
         }
-        return buffer.array().clone()
+        return buffer
     }
 
     override fun encodeOrder(): Array<Any> {

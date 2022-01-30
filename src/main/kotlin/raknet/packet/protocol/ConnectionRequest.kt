@@ -13,10 +13,10 @@ class ConnectionRequest(
     }
 
     companion object {
-        fun from(data: ByteBuf): ConnectionRequest {
+        fun from(buffer: ByteBuf): ConnectionRequest {
             return ConnectionRequest(
-                data.readLong(),
-                data.readLong()
+                buffer.readLong(),
+                buffer.readLong()
             )
         }
     }

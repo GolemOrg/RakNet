@@ -9,12 +9,12 @@ class TestPacketWithoutAuto(val testLong: Long, val testString: String, val test
         return arrayOf(testLong, testString, testRandom) // Unused as we override encode
     }
 
-    override fun encode(): ByteArray {
+    override fun encode(): ByteBuf {
         val buffer: ByteBuf = Unpooled.buffer()
         buffer.writeLong(testLong)
         buffer.writeShort(testString.length)
         buffer.writeCharSequence(testString, Charsets.UTF_8)
         buffer.writeInt(testRandom)
-        return buffer.array().clone()
+        return buffer
     }
 }

@@ -1,6 +1,7 @@
 package raknet.packet.protocol
 
 import io.netty.buffer.ByteBuf
+import io.netty.buffer.ByteBufUtil
 import raknet.Magic
 import raknet.Magic.readMagic
 import raknet.packet.DataPacket
@@ -12,7 +13,7 @@ class OpenConnectionReply2(
     var magic: Magic,
     var serverGuid: Long,
     var clientAddress: InetSocketAddress,
-    var mtuSize: Int,
+    var mtuSize: Short,
     var encryptionEnabled: Boolean,
 ): DataPacket(PacketType.OPEN_CONNECTION_REPLY_2.id()) {
 
@@ -26,7 +27,7 @@ class OpenConnectionReply2(
                 buffer.readMagic(),
                 buffer.readLong(),
                 buffer.readAddress(),
-                buffer.readInt(),
+                buffer.readShort(),
                 buffer.readBoolean()
             )
         }
