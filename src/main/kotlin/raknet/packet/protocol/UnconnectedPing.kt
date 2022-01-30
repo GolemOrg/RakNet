@@ -15,12 +15,12 @@ class UnconnectedPing(
     override fun encodeOrder(): Array<Any> =  arrayOf(time, magic, clientGuid)
 
     companion object {
-        fun from(buffer: ByteBuf): UnconnectedPing = UnconnectedPing(
+        fun from(buffer: ByteBuf) = UnconnectedPing(
             buffer.readLong(),
             buffer.readMagic(),
             buffer.readLong()
         )
     }
 
-    override fun toString(): String = "UnconnectedPingPacket(time=$time, clientGuid=$clientGuid)"
+    override fun toString() = "UnconnectedPingPacket(time=$time, clientGuid=$clientGuid)"
 }

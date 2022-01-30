@@ -25,6 +25,6 @@ class UnconnectedPong(
         )
     }
 
-    override fun toString(): String = "UnconnectedPongPacket(pingId=$pingId, guid=$guid, serverName='$serverName')"
+    override fun toString() = "UnconnectedPongPacket(pingId=$pingId, guid=$guid, serverName='$serverName')"
 
 }
