@@ -22,7 +22,7 @@ enum class PacketType(private val id: Short) {
     INCOMPATIBLE_PROTOCOL_VERSION(0x19),
 
     ACK(0xc0),
-    NAK(0xa0);
+    NACK(0xa0);
 
     fun id(): Short {
         return id
