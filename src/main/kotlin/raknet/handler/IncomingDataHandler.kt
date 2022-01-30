@@ -30,30 +30,35 @@ class IncomingDataHandler(private val server: Server): SimpleChannelInboundHandl
             if(type == null) return
             val response = handleUnconnected(ctx, type, buffer, sender)
             if (response == null) {
-                println("Received unconnected packet of type $id from $sender")
+                server.log("Received unconnected packet of type $id from $sender", "WARN")
                 return
             }
             ctx.sendPacket(sender, response)
         } else {
             val connection = server.getConnection(sender)!!
-            if(isDatagram(id)) {
-                val datagram = Datagram.from(id, buffer)
-                println("Received datagram from $sender: $datagram")
-            } else {
-                val packet: DataPacket = when(type) {
-                    PacketType.CONNECTED_PING -> ConnectedPing.from(buffer)
-                    PacketType.CONNECTION_REQUEST -> ConnectionRequest.from(buffer)
-                    PacketType.NEW_INCOMING_CONNECTION -> NewIncomingConnection.from(buffer)
+            if(!isDatagram(id)) {
+                connection.log("Received non-datagram packet of type $id from $sender")
+                return
+            }
+            val datagram = Datagram.from(id, buffer)
+            for(frame in datagram.frames) {
+                val frameType = PacketType.find(frame.body.readUnsignedByte())
+                val packet: DataPacket? = when(frameType) {
+                    PacketType.CONNECTED_PING -> ConnectedPing.from(frame.body)
+                    PacketType.CONNECTION_REQUEST -> ConnectionRequest.from(frame.body)
+                    PacketType.NEW_INCOMING_CONNECTION -> NewIncomingConnection.from(frame.body)
                     PacketType.DISCONNECTION_NOTIFICATION -> DisconnectionNotification()
                     else -> {
-                        println("Expression did not handle packet of type $type from $sender")
+                        connection.log("Expression did not handle packet of type $frameType from $sender")
                         null
                     }
-                } ?: return
-                println("Decoded buffer to $packet")
+                }
+                if(packet == null) {
+                    connection.log("Received invalid packet of type %02x from $sender".format(frameType))
+                    return
+                }
                 connection.handle(packet)
             }
-
         }
     }
 
@@ -106,11 +111,5 @@ class IncomingDataHandler(private val server: Server): SimpleChannelInboundHandl
         cause?.printStackTrace()
     }
 
-    private fun ChannelHandlerContext.sendPacket(address: InetSocketAddress, packet: DataPacket): ChannelFuture {
-        val preparedPacket = packet.prepare()
-        if(packet is OpenConnectionReply1 || packet is OpenConnectionReply2) {
-            println("Packet buffer for packet $packet: ${ByteBufUtil.hexDump(preparedPacket)}")
-        }
-        return writeAndFlush(DatagramPacket(preparedPacket, address))
-    }
+    private fun ChannelHandlerContext.sendPacket(address: InetSocketAddress, packet: DataPacket): ChannelFuture = writeAndFlush(DatagramPacket(packet.prepare(), address))
 }
