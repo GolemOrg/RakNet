@@ -1,6 +1,7 @@
 package raknet.codec
 
 import io.netty.buffer.ByteBuf
+import raknet.readString
 import raknet.readToByteArray
 import java.net.Inet4Address
 import java.net.Inet6Address
@@ -27,10 +28,7 @@ fun Any?.decode(buffer: ByteBuf): Any? {
         is Double -> buffer.readDouble()
         is Char -> buffer.readChar()
         is Boolean -> buffer.readBoolean()
-        is String -> {
-            val length = buffer.readShort()
-            return buffer.readCharSequence(length.toInt(), Charsets.UTF_8).toString()
-        }
+        is String -> buffer.readString()
         is ByteArray -> buffer.readToByteArray(this.size)
         is Codable -> this.decode(buffer)
         else -> null
