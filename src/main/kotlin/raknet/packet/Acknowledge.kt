@@ -4,14 +4,8 @@ import io.netty.buffer.ByteBuf
 import raknet.UIntLE
 import raknet.codec.Codable
 
-data class Record(
-    val isSingle: Boolean,
-    val sequenceNumber: UIntLE,
-    val endSequenceNumber: UIntLE? = null
-): Codable {
-    init {
-        if(!isSingle && endSequenceNumber == null) throw IllegalArgumentException("Ranged record must have end sequence number")
-    }
+data class Record(val isSingle: Boolean, val sequenceNumber: UIntLE, val endSequenceNumber: UIntLE? = null): Codable {
+    init { require(!isSingle && endSequenceNumber == null) { "Record range must have an end sequence number" } }
 
     override fun encode(buffer: ByteBuf) {
         buffer.writeBoolean(isSingle)
