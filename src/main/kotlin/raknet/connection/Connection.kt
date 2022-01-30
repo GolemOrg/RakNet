@@ -56,7 +56,7 @@ class Connection(
                     systemIndex = 0,
                     requestTime = packet.time,
                     time = System.currentTimeMillis(),
-                ))
+                ), Priority.IMMEDIATE)
             }
             is NewIncomingConnection -> {
                 state = State.CONNECTED
@@ -70,7 +70,7 @@ class Connection(
                     pingTime = packet.time,
                     pongTime = System.currentTimeMillis(),
                 )
-                send(response)
+                send(response, Priority.IMMEDIATE)
             }
             else -> {}
         }
