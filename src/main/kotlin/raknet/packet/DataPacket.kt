@@ -19,20 +19,20 @@ abstract class DataPacket(val id: Short) : Packet {
 
     abstract fun encodeOrder(): Array<Any>
 
+    open fun encodeHeader(buffer: ByteBuf): ByteBuf = buffer.writeByte(id.toInt())
+
     fun prepare(): ByteBuf {
         val encoded = encode()
         try {
-            return ByteBufAllocator.DEFAULT.ioBuffer()
-                .writeByte(id.toInt())
-                .writeBytes(encoded)
+            val buffer = ByteBufAllocator.DEFAULT.ioBuffer()
+            encodeHeader(buffer)
+            buffer.writeBytes(encoded)
+            return buffer
         } finally {
             encoded.release()
         }
-
     }
 
-    override fun toString(): String {
-        return "DataPacket(id=$id)"
-    }
+    override fun toString(): String = "DataPacket(id=$id)"
 
 }
