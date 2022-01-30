@@ -15,13 +15,11 @@ class OpenConnectionRequest1(
     override fun encodeOrder(): Array<Any> =  arrayOf(magic, protocolVersion, mtuSize)
 
     companion object {
-        fun from(buffer: ByteBuf): OpenConnectionRequest1 {
-            return OpenConnectionRequest1(
-                buffer.readMagic(),
-                buffer.readInt(),
-                buffer.readableBytes().toShort()
-            )
-        }
+        fun from(buffer: ByteBuf): OpenConnectionRequest1 = OpenConnectionRequest1(
+            buffer.readMagic(),
+            buffer.readInt(),
+            buffer.readableBytes().toShort()
+        )
     }
 
     override fun toString(): String = "OpenConnectionRequest1Packet(magic=$magic, protcolVersion=$protocolVersion, mtuSize=$mtuSize)"

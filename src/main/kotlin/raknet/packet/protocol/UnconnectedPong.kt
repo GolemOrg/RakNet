@@ -16,14 +16,12 @@ class UnconnectedPong(
     override fun encodeOrder(): Array<Any> = arrayOf(pingId, guid, magic, serverName)
 
     companion object {
-        fun from(buffer: ByteBuf): UnconnectedPong {
-            return UnconnectedPong(
-                buffer.readLong(),
-                buffer.readLong(),
-                buffer.readMagic(),
-                buffer.readCharSequence(buffer.readShort().toInt(), Charsets.UTF_8).toString()
-            )
-        }
+        fun from(buffer: ByteBuf): UnconnectedPong = UnconnectedPong(
+            buffer.readLong(),
+            buffer.readLong(),
+            buffer.readMagic(),
+            buffer.readCharSequence(buffer.readShort().toInt(), Charsets.UTF_8).toString()
+        )
     }
 
     override fun toString(): String = "UnconnectedPongPacket(pingId=$pingId, guid=$guid, serverName='$serverName')"

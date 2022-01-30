@@ -12,12 +12,7 @@ class ConnectionRequest(
     override fun encodeOrder(): Array<Any> = arrayOf(guid, time)
 
     companion object {
-        fun from(buffer: ByteBuf): ConnectionRequest {
-            return ConnectionRequest(
-                buffer.readLong(),
-                buffer.readLong()
-            )
-        }
+        fun from(buffer: ByteBuf): ConnectionRequest = ConnectionRequest(buffer.readLong(), buffer.readLong())
     }
 
     override fun toString(): String = "ConnectionRequestPacket(guid=$guid, time=$time)"

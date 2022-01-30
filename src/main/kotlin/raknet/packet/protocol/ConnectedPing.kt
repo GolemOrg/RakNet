@@ -11,11 +11,7 @@ class ConnectedPing(
     override fun encodeOrder(): Array<Any> = arrayOf(time)
 
     companion object {
-        fun from(buffer: ByteBuf): ConnectedPing {
-            return ConnectedPing(
-                buffer.readLong()
-            )
-        }
+        fun from(buffer: ByteBuf): ConnectedPing = ConnectedPing(buffer.readLong())
     }
 
     override fun toString(): String = "ConnectedPingPacket(time=$time)"

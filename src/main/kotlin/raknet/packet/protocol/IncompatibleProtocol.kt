@@ -12,12 +12,7 @@ class IncompatibleProtocol(
     override fun encodeOrder(): Array<Any> = arrayOf(protocol, serverGuid)
 
     companion object {
-        fun from(buffer: ByteBuf): IncompatibleProtocol {
-            return IncompatibleProtocol(
-                buffer.readInt(),
-                buffer.readLong()
-            )
-        }
+        fun from(buffer: ByteBuf): IncompatibleProtocol = IncompatibleProtocol(buffer.readInt(), buffer.readLong())
     }
 
     override fun toString(): String = "IncompatibleProtocolPacket(protocol=$protocol, serverGuid=$serverGuid)"
