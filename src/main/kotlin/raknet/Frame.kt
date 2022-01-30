@@ -16,10 +16,10 @@ class Frame(
     val sequencedFrameIndex: UIntLE? = null,
     val order: Order? = null,
     val fragment: Fragment? = null,
-    val body: ByteArray
-) {
+    val body: ByteBuf
+){
 
-    private fun split(): Boolean {
+    fun split(): Boolean {
         return fragment != null
     }
 
@@ -28,7 +28,7 @@ class Frame(
             val flags: Byte = buffer.readByte()
             val reliability = ReliabilityType.fromRaw(flags)
 
-            val split = (flags and Flag.PACKET_PAIR.id().toByte()) != 0.toByte()
+            val split = flags.and(Flag.PACKET_PAIR.id().toByte()) != 0.toByte()
 
             // The length is ceil(short) / 8
             val length = (buffer.readUnsignedShort() + 7) shr 3
@@ -43,13 +43,13 @@ class Frame(
                 if (reliability.sequenced) buffer.readUnsignedMediumLE().toUInt() else null,
                 if (reliability.sequenced || reliability.ordered) Order(buffer.readUnsignedMediumLE().toUInt(), buffer.readUnsignedByte().toByte()) else null,
                 if(split) Fragment(buffer.readInt(), buffer.readShort(), buffer.readInt()) else null,
-                buffer.readToByteArray(length)
+                buffer.readSlice(length)
             )
         }
     }
 
     override fun toString(): String {
-        return "Frame(reliabilityType=$reliability, length=$length, reliableFrameIndex=$reliableFrameIndex, sequencedFrameIndex=$sequencedFrameIndex, order=$order, fragment=$fragment, body=Body(${body.size}))"
+        return "Frame(reliabilityType=$reliability, length=$length, reliableFrameIndex=$reliableFrameIndex, sequencedFrameIndex=$sequencedFrameIndex, order=$order, fragment=$fragment, body=Body(${body.readableBytes()}))"
     }
 
 }
