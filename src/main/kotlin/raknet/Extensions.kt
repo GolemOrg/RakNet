@@ -14,7 +14,7 @@ fun ByteBuf.readAddress(): InetSocketAddress {
             port = readUnsignedShort()
         }
         6 -> {
-            readShort() // AF_INET6
+            readShortLE() // AF_INET6
             port = readUnsignedShort()
             readInt() // Flow Info
             addressBytes = readToByteArray(16)

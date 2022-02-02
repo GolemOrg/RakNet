@@ -2,9 +2,9 @@ package raknet.connection
 
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.nio.NioEventLoopGroup
-import raknet.Frame
+import raknet.packet.Frame
 import raknet.Server
-import raknet.enums.ReliabilityType
+import raknet.enums.Reliability
 import raknet.handler.sendPacket
 import raknet.packet.*
 import raknet.packet.protocol.*
@@ -29,6 +29,9 @@ class Connection(
     private val packetQueue: MutableList<DataPacket> = mutableListOf()
     private var currentSequenceIndex: Int = 0
 
+    private var ackQueue: MutableList<Int> = mutableListOf()
+    private var nackQueue: MutableList<Int> = mutableListOf()
+
     init {
         worker.scheduleAtFixedRate(this::tick, 0, TimePeriod.UPDATE.period, TimeUnit.MILLISECONDS)
     }
@@ -38,6 +41,10 @@ class Connection(
     }
 
     private fun tick() {
+//        if(ackQueue.size > 0) {
+//            dispatchAck()
+//            ackQueue.clear()
+//        }
         if(packetQueue.size > 0) {
             log("Sending ${packetQueue.size} packets")
             packetQueue.forEach {
@@ -46,28 +53,62 @@ class Connection(
             context.flush()
             packetQueue.clear()
         }
+    }
 
+    fun dispatchAck() {
+        val single = ackQueue.size == 1
+        val ack = Acknowledge(
+            recordCount = ackQueue.size.toShort(),
+            Record(
+                isSingle = single,
+                sequenceNumber = ackQueue.minOf { it }.toUInt(),
+                endSequenceNumber = if(single) ackQueue.maxOf { it }.toUInt() else null
+            )
+        )
+        context.sendPacket(address, ack)
     }
 
     fun handleAck(acknowledge: Acknowledge) {
-        log("Received ACK: $acknowledge")
     }
 
     fun handleNAck(nAcknowledge: NAcknowledge) {
-        log("Received NACK: $nAcknowledge")
+    }
+
+    fun handleDatagram(datagram: Datagram) {
+        for (frame in datagram.frames) {
+            if(frame.reliability.reliable()) {
+                ackQueue.add(frame.reliableFrameIndex!!.toInt())
+            }
+            val body = frame.body
+            val frameType = body.readUnsignedByte().toInt()
+            val packet: DataPacket = when(PacketType.find(frameType)) {
+                PacketType.CONNECTION_REQUEST -> ConnectionRequest.from(body)
+                PacketType.NEW_INCOMING_CONNECTION -> NewIncomingConnection.from(body)
+                PacketType.DISCONNECTION_NOTIFICATION -> DisconnectionNotification()
+                PacketType.CONNECTED_PING -> ConnectedPing.from(body)
+                else -> {
+                    log("Received unknown packet of type $frameType")
+                    continue
+                }
+            }
+            handle(packet)
+        }
     }
 
     fun handle(packet: DataPacket) {
         log("Received packet: $packet")
         when(packet) {
             is ConnectionRequest -> {
+                dispatchAck()
                 state = State.CONNECTING
-                sendConnected(ConnectionRequestAccepted(
+                val accepted = ConnectionRequestAccepted(
                     clientAddress = this.address,
                     systemIndex = 0,
                     requestTime = packet.time,
                     time = System.currentTimeMillis(),
-                ))
+                )
+                println("Connection accepted: $accepted")
+                sendConnected(accepted)
             }
             is NewIncomingConnection -> {
                 state = State.CONNECTED
@@ -91,17 +132,17 @@ class Connection(
         TODO("Not implemented")
     }
 
-    private fun sendConnected(packet: ConnectedPacket, reliability: ReliabilityType = ReliabilityType.UNRELIABLE) {
-        val encoded = packet.prepare()
-        log("Sending connected packet $packet")
-        context.sendPacket(address, Datagram(
+    private fun sendConnected(packet: ConnectedPacket, reliability: Reliability = Reliability.UNRELIABLE) {
+        val datagram = Datagram(
             sequenceIndex = currentSequenceIndex++.toUInt(),
-            frames = mutableListOf(Frame(
-                reliability = reliability,
-                encoded.readableBytes().toUShort(),
-                body = encoded
-            ))
-        ))
+            frames = mutableListOf(
+                Frame(
+                    reliability = reliability,
+                    body = packet.prepare()
+                )
+            )
+        )
+        context.sendPacket(address, datagram)
     }
 
     private fun close(reason: String) {

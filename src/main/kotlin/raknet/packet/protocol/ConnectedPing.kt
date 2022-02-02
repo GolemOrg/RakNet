@@ -14,5 +14,5 @@ class ConnectedPing(
         fun from(buffer: ByteBuf) = ConnectedPing(buffer.readLong())
     }
 
-    override fun toString() = "ConnectedPingPacket(time=$time)"
+    override fun toString() = "ConnectedPing(time=$time)"
 }

@@ -15,5 +15,5 @@ class ConnectionRequest(
         fun from(buffer: ByteBuf) = ConnectionRequest(buffer.readLong(), buffer.readLong())
     }
 
-    override fun toString() = "ConnectionRequestPacket(guid=$guid, time=$time)"
+    override fun toString() = "ConnectionRequest(guid=$guid, time=$time)"
 }

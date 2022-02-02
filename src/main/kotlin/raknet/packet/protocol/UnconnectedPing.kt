@@ -22,5 +22,5 @@ class UnconnectedPing(
         )
     }
 
-    override fun toString() = "UnconnectedPingPacket(time=$time, clientGuid=$clientGuid)"
+    override fun toString() = "UnconnectedPing(time=$time, clientGuid=$clientGuid)"
 }

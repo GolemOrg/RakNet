@@ -1,8 +1,6 @@
 package raknet.enums
 
-import kotlin.experimental.and
-
-enum class Flag(private val id: Short) {
+enum class Flag(private val id: Int) {
     DATAGRAM(0b1000_0000),
     ACK(0b0100_0000),
     NACK(0b0010_0000),
@@ -12,11 +10,9 @@ enum class Flag(private val id: Short) {
     NEEDS_B_AND_AS(0b0000_0100);
 
 
-    fun id(): Short = id
+    fun id(): Int = id
 
     companion object {
-        fun from(id: Short): Array<Flag> {
-            return values().filter { it.id and id != 0.toShort()}.toTypedArray()
-        }
+        fun from(id: Int): Array<Flag> = values().filter { it.id and id != 0}.toTypedArray()
     }
 }

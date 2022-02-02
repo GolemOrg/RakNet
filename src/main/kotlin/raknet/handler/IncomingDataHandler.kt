@@ -1,7 +1,6 @@
 package raknet.handler
 
 import io.netty.buffer.ByteBuf
-import io.netty.channel.ChannelFuture
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
 import io.netty.channel.socket.DatagramPacket
@@ -12,7 +11,6 @@ import raknet.enums.Flag
 import raknet.packet.*
 import raknet.packet.protocol.*
 import java.net.InetSocketAddress
-import kotlin.experimental.and
 
 /**
  * TODO: It may be worth it to split the incoming data handler into UnconnectedHandshakeHandler & ConnectedHandler
@@ -22,9 +20,10 @@ class IncomingDataHandler(private val server: Server): SimpleChannelInboundHandl
     override fun channelRead0(ctx: ChannelHandlerContext, msg: DatagramPacket) {
         val sender = msg.sender()
         val buffer = msg.content()
+
         // Capture buffer data and transform it into a packet if possible
         // We could use a packet factory here, but I'm not sure if that's the best avenue to take at the moment
-        val id = buffer.readUnsignedByte()
+        val id = buffer.readUnsignedByte().toInt()
         val type: PacketType? = PacketType.find(id)
         if(!server.hasConnection(sender)) {
             if(type == null) return
@@ -36,32 +35,17 @@ class IncomingDataHandler(private val server: Server): SimpleChannelInboundHandl
                 PacketType.ACK -> connection.handleAck(Acknowledge.from(buffer))
                 PacketType.NACK -> connection.handleNAck(NAcknowledge.from(buffer))
                 else -> {
-                    if(!isDatagram(id)) {
-                        connection.log("Received non-datagram packet of type $id from $sender")
+                    val isDatagram = id and Flag.DATAGRAM.id() != 0
+                    if(!isDatagram) {
+                        connection.log("Encountered non-datagram packet with id $id")
                         return
                     }
-                    val datagram = Datagram.from(id, buffer)
-                    for (frame in datagram.frames) {
-                        val body = frame.body
-                        val frameType = body.readUnsignedByte()
-                        val packet: DataPacket = when(PacketType.find(frameType)) {
-                            PacketType.CONNECTION_REQUEST -> ConnectionRequest.from(body)
-                            PacketType.NEW_INCOMING_CONNECTION -> NewIncomingConnection.from(body)
-                            PacketType.DISCONNECTION_NOTIFICATION -> DisconnectionNotification()
-                            PacketType.CONNECTED_PING -> ConnectedPing.from(body)
-                            else -> {
-                                connection.log("Received unknown packet of type $frameType from $sender")
-                                continue
-                            }
-                        }
-                        connection.handle(packet)
-                    }
+                    buffer.resetReaderIndex()
+                    connection.handleDatagram(Datagram.from(buffer))
                 }
             }
         }
     }
-
-    private fun isDatagram(id: Short): Boolean = id and Flag.DATAGRAM.id() != 0.toShort()
 
     private fun handleUnconnected(ctx: ChannelHandlerContext, type: PacketType, buffer: ByteBuf, sender: InetSocketAddress): DataPacket? {
         return when(type) {
@@ -109,4 +93,15 @@ class IncomingDataHandler(private val server: Server): SimpleChannelInboundHandl
     }
 }
 
-fun ChannelHandlerContext.sendPacket(address: InetSocketAddress, packet: DataPacket): ChannelFuture = writeAndFlush(DatagramPacket(packet.prepare(), address))
+fun ChannelHandlerContext.sendPacket(address: InetSocketAddress, packet: DataPacket) {
+    val prepared = packet.prepare()
+    try {
+        writeAndFlush(DatagramPacket(prepared, address))
+    } catch (e: Exception) {
+        e.printStackTrace()
+    } finally {
+        if(prepared.refCnt() > 0) {
+            prepared.release()
+        }
+    }
+}

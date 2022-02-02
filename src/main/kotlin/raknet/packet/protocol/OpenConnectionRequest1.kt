@@ -22,5 +22,5 @@ class OpenConnectionRequest1(
         )
     }
 
-    override fun toString() = "OpenConnectionRequest1Packet(magic=$magic, protcolVersion=$protocolVersion, mtuSize=$mtuSize)"
+    override fun toString() = "OpenConnectionRequest1(magic=$magic, protcolVersion=$protocolVersion, mtuSize=$mtuSize)"
 }

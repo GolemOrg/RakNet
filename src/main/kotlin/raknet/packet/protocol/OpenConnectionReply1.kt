@@ -25,5 +25,5 @@ class OpenConnectionReply1(
         )
     }
 
-    override fun toString() = "OpenConnectionReply1Packet(magic=$magic, serverGuid=$serverGuid, useSecurity=$useSecurity, mtuSize=$mtuSize)"
+    override fun toString() = "OpenConnectionReply1(magic=$magic, serverGuid=$serverGuid, useSecurity=$useSecurity, mtuSize=$mtuSize)"
 }

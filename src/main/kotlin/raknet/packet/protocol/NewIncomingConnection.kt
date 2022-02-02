@@ -17,5 +17,5 @@ class NewIncomingConnection(
         fun from(buffer: ByteBuf) = NewIncomingConnection(buffer.readAddress(), buffer.readAddress())
     }
 
-    override fun toString() = "NewIncomingConnectionPacket(address=$address, internalAddress=$internalAddress)"
+    override fun toString() = "NewIncomingConnection(address=$address, internalAddress=$internalAddress)"
 }

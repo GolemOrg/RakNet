@@ -18,16 +18,16 @@ class ConnectionRequestAccepted(
     override fun encodeOrder(): Array<Any> = arrayOf(clientAddress, systemIndex, internalIds, requestTime, time)
 
     companion object {
-        val DEFAULT_ADDRESSES: Array<InetSocketAddress> = Array(AddressCount.MINECRAFT.count()) { InetSocketAddress("255.255.255.255", 19132) }
+        val DEFAULT_ADDRESSES: Array<InetSocketAddress> = Array(AddressCount.MINECRAFT.count()) { InetSocketAddress("0.0.0.0", 0) }
 
         fun from(buffer: ByteBuf) = ConnectionRequestAccepted(
             buffer.readAddress(),
             buffer.readInt(),
-            (0 until AddressCount.MINECRAFT.count()).map { buffer.readAddress() }.toTypedArray(),
+            (0 until AddressCount.RAKNET.count()).map { buffer.readAddress() }.toTypedArray(),
             buffer.readLong(),
             buffer.readLong()
         )
     }
 
-    override fun toString() = "ConnectionRequestAcceptedPacket(clientAddress=$clientAddress, systemIndex=$systemIndex, internalIds=${internalIds.contentToString()}, requestTime=$requestTime, time=$time)"
+    override fun toString() = "ConnectionRequestAccepted(clientAddress=$clientAddress, systemIndex=$systemIndex, internalIds=${internalIds.contentToString()}, requestTime=$requestTime, time=$time)"
 }

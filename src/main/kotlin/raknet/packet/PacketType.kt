@@ -1,6 +1,6 @@
 package raknet.packet
 
-enum class PacketType(private val id: Short) {
+enum class PacketType(private val id: Int) {
     CONNECTED_PING(0x00),
     CONNECTED_PONG(0x03),
 
@@ -24,12 +24,10 @@ enum class PacketType(private val id: Short) {
     ACK(0xc0),
     NACK(0xa0);
 
-    fun id(): Short {
-        return id
-    }
+    fun id(): Int = id
 
     companion object {
-        fun find(id: Short): PacketType? {
+        fun find(id: Int): PacketType? {
             return values().firstOrNull { it.id == id }
         }
     }
