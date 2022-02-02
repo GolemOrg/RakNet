@@ -33,7 +33,7 @@ data class Record(val isSingle: Boolean, val sequenceNumber: UIntLE, val endSequ
     override fun toString() = "Record(isSingle=$isSingle, sequenceNumber=$sequenceNumber, endSequenceNumber=$endSequenceNumber)"
 }
 
-sealed class Base(id: Short, val recordCount: Short, val record: Record): ConnectedPacket(id) {
+sealed class Base(id: Int, val recordCount: Short, val record: Record): ConnectedPacket(id) {
     override fun encodeOrder(): Array<Any> = arrayOf(recordCount, record)
 }
 

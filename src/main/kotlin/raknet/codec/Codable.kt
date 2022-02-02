@@ -67,7 +67,7 @@ fun Any?.encode(buffer: ByteBuf) {
                 }
                 is Inet6Address -> {
                     buffer.writeByte(6) // IPv6
-                    buffer.writeShort(10) // AF_INET6
+                    buffer.writeShortLE(10) // AF_INET6
                     buffer.writeShort(this.port)
                     buffer.writeInt(0) // Flow info
                     buffer.writeBytes(inner.address)

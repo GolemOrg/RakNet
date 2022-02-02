@@ -15,5 +15,5 @@ class IncompatibleProtocol(
         fun from(buffer: ByteBuf) = IncompatibleProtocol(buffer.readInt(), buffer.readLong())
     }
 
-    override fun toString() = "IncompatibleProtocolPacket(protocol=$protocol, serverGuid=$serverGuid)"
+    override fun toString() = "IncompatibleProtocol(protocol=$protocol, serverGuid=$serverGuid)"
 }

@@ -26,6 +26,6 @@ class OpenConnectionRequest2(
         )
     }
 
-    override fun toString() = "OpenConnectionRequest2Packet(magic=$magic, serverAddress=$serverAddress, mtuSize=$mtuSize, clientGuid=$clientGuid)"
+    override fun toString() = "OpenConnectionRequest2(magic=$magic, serverAddress=$serverAddress, mtuSize=$mtuSize, clientGuid=$clientGuid)"
 
 }

@@ -1,6 +1,5 @@
 package raknet
 
-
 fun main() {
     val server = Server (
         port = 19132,
