@@ -13,9 +13,7 @@ class NewIncomingConnection(
 
     override fun encodeOrder(): Array<Any> = arrayOf(address, internalAddress)
 
-    companion object {
-        fun from(buffer: ByteBuf) = NewIncomingConnection(buffer.readAddress(), buffer.readAddress())
-    }
+    companion object { fun from(buffer: ByteBuf) = NewIncomingConnection(buffer.readAddress(), buffer.readAddress()) }
 
     override fun toString() = "NewIncomingConnection(address=$address, internalAddress=$internalAddress)"
 }

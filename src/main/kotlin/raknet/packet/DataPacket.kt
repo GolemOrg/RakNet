@@ -4,7 +4,7 @@ import io.netty.buffer.ByteBuf
 import io.netty.buffer.ByteBufAllocator
 import raknet.codec.encode
 
-abstract class DataPacket(val id: Int) : Packet {
+abstract class DataPacket(open val id: Int) : Packet {
 
     override fun encode(): ByteBuf {
         val buffer = ByteBufAllocator.DEFAULT.ioBuffer()
@@ -35,5 +35,6 @@ abstract class DataPacket(val id: Int) : Packet {
     }
 
     override fun toString(): String = "DataPacket(id=$id)"
+
 
 }

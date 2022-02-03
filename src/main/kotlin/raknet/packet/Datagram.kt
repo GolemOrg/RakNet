@@ -4,7 +4,6 @@ import io.netty.buffer.ByteBuf
 import io.netty.buffer.ByteBufAllocator
 import raknet.UIntLE
 import raknet.enums.Flag
-import kotlin.experimental.or
 
 /**
  * The packet ID passed to the parent constructor isn't the actual packet ID, but rather a simple placeholder
@@ -14,14 +13,21 @@ class Datagram(
     val header: Array<Flag> = arrayOf(Flag.DATAGRAM),
     val sequenceIndex: UIntLE,
     val frames: MutableList<Frame>
-) : DataPacket(Flag.DATAGRAM.id()) {
+) : ConnectedPacket(Flag.DATAGRAM.id()) {
 
     override fun encodeHeader(buffer: ByteBuf): ByteBuf = buffer.writeByte(header.fold(0) { acc, flag -> acc or flag.id() })
 
     override fun encode(): ByteBuf {
         val buffer = ByteBufAllocator.DEFAULT.ioBuffer()
         buffer.writeMediumLE(sequenceIndex.toInt())
-        frames.forEach { buffer.writeBytes(it.encode()) }
+        frames.forEach {
+            val encoded = it.encode()
+            try {
+                buffer.writeBytes(encoded)
+            } finally {
+                encoded.release()
+            }
+        }
         return buffer
     }
 

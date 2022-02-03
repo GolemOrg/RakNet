@@ -3,47 +3,85 @@ package raknet.packet
 import io.netty.buffer.ByteBuf
 import raknet.UIntLE
 import raknet.codec.Codable
+import kotlin.system.exitProcess
 
-data class Record(val isSingle: Boolean, val sequenceNumber: UIntLE, val endSequenceNumber: UIntLE? = null): Codable {
-    init { if(!isSingle && endSequenceNumber == null) throw IllegalArgumentException("End sequence number must be set for ranged record") }
+data class Record(val sequenceNumber: UIntLE, val endSequenceNumber: UIntLE? = null): Codable {
 
     override fun encode(buffer: ByteBuf) {
-        buffer.writeBoolean(isSingle)
+        val single = endSequenceNumber == null
+        buffer.writeBoolean(single)
         buffer.writeMediumLE(sequenceNumber.toInt())
-        if(!isSingle) buffer.writeMediumLE(endSequenceNumber!!.toInt())
+        if(!single) buffer.writeMediumLE(endSequenceNumber!!.toInt())
     }
 
-    override fun decode(buffer: ByteBuf) = Record(
-        isSingle = buffer.readBoolean(),
-        sequenceNumber = buffer.readUnsignedMediumLE().toUInt(),
-        endSequenceNumber = if(!isSingle) buffer.readUnsignedMediumLE().toUInt() else null
-    )
+    override fun decode(buffer: ByteBuf): Record {
+        val single = buffer.readBoolean()
+        return Record(
+            sequenceNumber = buffer.readUnsignedMediumLE().toUInt(),
+            endSequenceNumber = if(!single) buffer.readUnsignedMediumLE().toUInt() else null
+        )
+    }
 
     companion object {
         fun from(buffer: ByteBuf): Record {
             val single = buffer.readBoolean()
             return Record(
-                isSingle = single,
                 sequenceNumber = buffer.readUnsignedMediumLE().toUInt(),
                 endSequenceNumber = if(!single) buffer.readUnsignedMediumLE().toUInt() else null
             )
         }
+
+        fun fromList(list: List<Int>): MutableList<Record> {
+            val records = mutableListOf<Record>()
+            val iterator = list.sorted().iterator()
+
+            var start = iterator.next()
+            var end = start
+            while(iterator.hasNext()) {
+                val current = iterator.next()
+                if(current - end <= 1) {
+                    end = current
+                    continue
+                }
+                records.add(Record(
+                    sequenceNumber = start.toUInt(),
+                    endSequenceNumber = if (end == start) null else end.toUInt()
+                ))
+
+                start = current
+                end = current
+            }
+            records.add(Record(sequenceNumber = start.toUInt(), endSequenceNumber = if (end == start) null else end.toUInt()))
+            return records
+        }
     }
 
-    override fun toString() = "Record(isSingle=$isSingle, sequenceNumber=$sequenceNumber, endSequenceNumber=$endSequenceNumber)"
+    override fun toString() = "Record(sequenceNumber=$sequenceNumber, endSequenceNumber=$endSequenceNumber)"
 }
 
-sealed class Base(id: Int, val recordCount: Short, val record: Record): ConnectedPacket(id) {
-    override fun encodeOrder(): Array<Any> = arrayOf(recordCount, record)
+sealed class Base(id: Int, val records: MutableList<Record>): ConnectedPacket(id) {
+    override fun encodeOrder(): Array<Any> = arrayOf(records.size.toShort(), records)
 }
 
-class Acknowledge(recordCount: Short, record: Record): Base(PacketType.ACK.id(), recordCount, record) {
-    override fun toString() = "Acknowledge(recordCount=$recordCount, record=$record)"
+class Acknowledge(records: MutableList<Record>): Base(PacketType.ACK.id(), records) {
+    override fun toString(): String = "Acknowledge(records=${records.joinToString()})"
 
-    companion object { fun from(buffer: ByteBuf) = Acknowledge(buffer.readShort(), Record.from(buffer)) }
+    companion object {
+        fun from(buffer: ByteBuf): Acknowledge {
+            val records = mutableListOf<Record>()
+            for(i in 0 until buffer.readShort()) records.add(Record.from(buffer))
+            return Acknowledge(records)
+        }
+    }
 }
-class NAcknowledge(recordCount: Short, record: Record): Base(PacketType.NACK.id(), recordCount, record) {
-    override fun toString() = "NAcknowledge(recordCount=$recordCount, record=$record)"
+class NAcknowledge(records: MutableList<Record>): Base(PacketType.NACK.id(), records) {
+    override fun toString(): String = "NAcknowledge(records=${records.joinToString()})"
 
-    companion object { fun from(buffer: ByteBuf) = NAcknowledge(buffer.readShort(), Record.from(buffer)) }
+    companion object {
+        fun from(buffer: ByteBuf): NAcknowledge {
+            val records = mutableListOf<Record>()
+            for(i in 0 until buffer.readShort()) records.add(Record.from(buffer))
+            return NAcknowledge(records)
+        }
+    }
 }

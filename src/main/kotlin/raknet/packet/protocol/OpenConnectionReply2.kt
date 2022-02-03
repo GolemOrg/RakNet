@@ -3,7 +3,7 @@ package raknet.packet.protocol
 import io.netty.buffer.ByteBuf
 import raknet.Magic
 import raknet.Magic.readMagic
-import raknet.packet.DataPacket
+import raknet.packet.UnconnectedPacket
 import raknet.packet.PacketType
 import raknet.readAddress
 import java.net.InetSocketAddress
@@ -14,7 +14,7 @@ class OpenConnectionReply2(
     var clientAddress: InetSocketAddress,
     var mtuSize: Short,
     var encryptionEnabled: Boolean,
-): DataPacket(PacketType.OPEN_CONNECTION_REPLY_2.id()) {
+): UnconnectedPacket(PacketType.OPEN_CONNECTION_REPLY_2.id()) {
 
     override fun encodeOrder(): Array<Any> = arrayOf(magic, serverGuid, clientAddress, mtuSize, encryptionEnabled)
 
