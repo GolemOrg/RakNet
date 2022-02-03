@@ -1,85 +1,79 @@
 package raknet
 
+import io.netty.bootstrap.Bootstrap
+import io.netty.channel.ChannelInitializer
+import io.netty.channel.ChannelOption
+import io.netty.channel.nio.NioEventLoopGroup
+import io.netty.channel.socket.nio.NioDatagramChannel
 import io.netty.util.ResourceLeakDetector
 import raknet.connection.Connection
-import raknet.handler.NetworkHandler
+import raknet.handler.MessageEncoder
+import raknet.handler.connected.ConnectedMessageDecoder
+import raknet.handler.connected.ConnectedMessageHandler
+import raknet.handler.unconnected.UnconnectedMessageDecoder
+import raknet.handler.unconnected.UnconnectedMessageHandler
+import raknet.packet.ConnectedPacket
+import raknet.packet.UnconnectedPacket
 import java.net.InetSocketAddress
-import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.HashMap
 
 class Server(
-    private val port: Int = 19132,
-    private val maxConnections: Int = 250,
-    private val name: String = "RakNet Server",
-    private var verbose: Boolean = false,
+    val port: Int = 19132,
+    var maxConnections: Int = 250,
+    var name: String = "RakNet Server",
+    val guid: UUID = UUID.randomUUID(),
+    var identifier: Identifier? = null,
 ) {
+    init { ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.PARANOID) }
 
-    init {
-        ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.PARANOID)
-    }
+    private val group = NioEventLoopGroup()
+    private val startTime: Long = System.currentTimeMillis()
+    val listeners: MutableList<ServerListener> = mutableListOf()
 
-    val guid: UUID = UUID.randomUUID()
-    val identifier: Identifier = Identifier(arrayListOf(
-        "Test Server",
-        475,
-        "1.18.0",
-        0,
-        100,
-        guid.mostSignificantBits,
-        "raknet-kt",
-        "Creative"
-    ))
-
-    private val handler = NetworkHandler(this)
     private val connections: HashMap<InetSocketAddress, Connection> = HashMap()
-    var running: Boolean = true
 
     fun start() {
-        log("Starting server with name '$name'...")
-        handler.start()
-        log("Server successfully started")
-        while(running) {
-
+        try {
+            val bootstrap = Bootstrap()
+                .channel(NioDatagramChannel::class.java)
+                .group(group)
+                .option(ChannelOption.SO_REUSEADDR, true)
+                .handler(object: ChannelInitializer<NioDatagramChannel>() {
+                    override fun initChannel(channel: NioDatagramChannel) {
+                        channel.pipeline().addLast(
+                            // Decoders
+                            UnconnectedMessageDecoder(),
+                            ConnectedMessageDecoder(this@Server),
+                            // Encoders
+                            MessageEncoder<UnconnectedPacket>(),
+                            MessageEncoder<ConnectedPacket>(),
+                            // Handlers
+                            UnconnectedMessageHandler(this@Server),
+                            ConnectedMessageHandler(this@Server),
+                        )
+                    }
+                })
+            // Bind the server to the port.
+            val future = bootstrap.bind(port).sync()
+            // Keep the server alive until the socket is closed.
+            future.channel().closeFuture().sync()
+        } finally {
+            group.shutdownGracefully()
         }
-        log("Shutting down server...")
-        shutdown()
-    }
-
-    fun stop() {
-        running = false
     }
 
     fun shutdown() {
-        log("Shutting down server...")
-        // Close all connections
-        handler.shutdown()
-        log("Server successfully shut down")
+        connections.values.forEach { it.close("Server shutdown") }
+        group.shutdownGracefully()
     }
 
+    fun listen(listener: ServerListener) = listeners.add(listener)
 
-
-    /**
-     * Logs a message to the console if verbose is enabled
-     */
-    fun log(message: String, level: String = "INFO") {
-        if (verbose) {
-            println("[%s] [%s] [%s] %s".format(
-                SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(Date()),
-                this::class.simpleName,
-                level,
-                message
-            ))
-        }
-    }
-
-    fun getPort(): Int = port
-
-    fun getMaxConnections(): Int = maxConnections
-
-    fun getName(): String = name
+    fun getUptime() = System.currentTimeMillis() - startTime
 
     fun addConnection(connection: Connection) {
+        listeners.forEach { it.handleNewConnection(connection) }
         connections[connection.address] = connection
     }
 
@@ -89,12 +83,7 @@ class Server(
 
     fun getConnections(): List<Connection> = connections.values.toList()
 
-    fun closeConnection(address: InetSocketAddress) {
-        connections.remove(address)
-    }
-
-    fun closeConnection(connection: Connection) {
-        connections.remove(connection.address)
-    }
+    fun closeConnection(address: InetSocketAddress) = connections.remove(address)
+    fun closeConnection(connection: Connection) = connections.remove(connection.address)
 
 }

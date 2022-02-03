@@ -3,14 +3,14 @@ package raknet.packet.protocol
 import io.netty.buffer.ByteBuf
 import raknet.Magic
 import raknet.Magic.readMagic
-import raknet.packet.DataPacket
+import raknet.packet.UnconnectedPacket
 import raknet.packet.PacketType
 
 class OpenConnectionRequest1(
     var magic: Magic,
     var protocolVersion: Int,
     var mtuSize: Short
-): DataPacket(PacketType.OPEN_CONNECTION_REQUEST_1.id()) {
+): UnconnectedPacket(PacketType.OPEN_CONNECTION_REQUEST_1.id()) {
 
     override fun encodeOrder(): Array<Any> =  arrayOf(magic, protocolVersion, mtuSize)
 

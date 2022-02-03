@@ -1,6 +1,6 @@
 package raknet
 
-data class Identifier(val values: ArrayList<Any>) {
+class Identifier(private vararg val values: Any) {
 
     override fun toString(): String {
         val builder = StringBuilder()

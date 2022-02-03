@@ -78,7 +78,7 @@ class Frame(
                 if (reliability.sequenced()) buffer.readUnsignedMediumLE().toUInt() else null,
                 if (reliability.sequenced() || reliability.ordered()) Order.from(buffer) else null,
                 if(split) Fragment.from(buffer) else null,
-                buffer.readSlice(length)
+                buffer.readBytes(length)
             )
         }
     }

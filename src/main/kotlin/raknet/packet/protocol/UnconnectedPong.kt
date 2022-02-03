@@ -3,7 +3,7 @@ package raknet.packet.protocol
 import io.netty.buffer.ByteBuf
 import raknet.Magic
 import raknet.Magic.readMagic
-import raknet.packet.DataPacket
+import raknet.packet.UnconnectedPacket
 import raknet.packet.PacketType
 import raknet.readString
 
@@ -12,7 +12,7 @@ class UnconnectedPong(
     var guid: Long,
     var magic: Magic,
     var serverName: String,
-): DataPacket(PacketType.UNCONNECTED_PONG.id()) {
+): UnconnectedPacket(PacketType.UNCONNECTED_PONG.id()) {
 
     override fun encodeOrder(): Array<Any> = arrayOf(pingId, guid, magic, serverName)
 
