@@ -64,7 +64,7 @@ The following is a list of all the packet types in the protocol.
 These are the packets that are sent to/from the server when the client has not
 established a connection with the server.
 
-### Unconnected Ping (`0x01`)
+### Unconnected Ping (`0x01`) | Client → Server
 This packet is sent to the server as a way to request information about the server.
 
 | Field Name  | Field Type | Documentation                                      |
@@ -73,7 +73,8 @@ This packet is sent to the server as a way to request information about the serv
 | Magic       | Magic      | See above in "Data Types" for more about this type |
 | Client GUID | Long       | A unique identifier sent by the client             |
 
-### Unconnected Pong (`0x1C`)
+### Unconnected Pong (`0x1C`) | Server → Client
+This packet is sent to the client as a way to respond to the Unconnected Ping.
 
 | Field Name  | Field Type | Documentation                                                   |
 |-------------|------------|-----------------------------------------------------------------|
@@ -101,7 +102,8 @@ field is separated by the `;` character.
 | Port (IPv4)         | Int        | The port used by the server when connecting through IPv4        |
 | Port (IPv6)         | Int        | The port used by the server when connecting through IPv6        |
 
-### Open Connection Request 1 (`0x05`)
+### Open Connection Request 1 (`0x05`) | Client → Server
+This is the initial packet sent when the client wants to establish a connection with the server.
 
 | Field Name                   | Field Type   | Documentation                                                                                                       |
 |------------------------------|--------------|---------------------------------------------------------------------------------------------------------------------|
@@ -109,7 +111,8 @@ field is separated by the `;` character.
 | Protocol Version             | Byte         | The current RakNet version (10 for Bedrock Edition)                                                                 |
 | Maximum Transfer Units (MTU) | Zero padding | The MTU size for the client consists of the entire buffer, but the padding is used as a way to get it to that value |
 
-### Open Connection Reply 1 (`0x06`)
+### Open Connection Reply 1 (`0x06`) | Server → Client
+This packet is sent in response to the OpenConnectionRequest1 packet.
 
 | Field Name   | Field Type | Documentation                                                                          |
 |--------------|------------|----------------------------------------------------------------------------------------|
@@ -118,7 +121,8 @@ field is separated by the `;` character.
 | Use Security | Boolean    | If using for Bedrock Edition, this field must be set to false                          |
 | MTU Size     | Short      | The MTU size from OpenConnectionRequest1 + 20 bytes (IP header) + 8 bytes (UDP header) |
 
-### Open Connection Request 2 (`0x07`)
+### Open Connection Request 2 (`0x07`) | Client → Server
+This is the second packet sent when the client wants to establish a connection with the server.
 
 | Field Name     | Field Type | Documentation                                                      |
 |----------------|------------|--------------------------------------------------------------------|
@@ -128,7 +132,8 @@ field is separated by the `;` character.
 | Client GUID    | Long       | The unique identifier sent by the client                           |
 
 
-### Open Connection Reply 2 (`0x08`)
+### Open Connection Reply 2 (`0x08`) | Server → Client
+This packet is sent in response to the OpenConnectionRequest2 packet.
 
 | Field Name         | Field Type | Documentation                                      |
 |--------------------|------------|----------------------------------------------------|
@@ -138,7 +143,8 @@ field is separated by the `;` character.
 | MTU Size           | Short      | The final size of the MTU                          |
 | Encryption Enabled | Boolean    | Whether or not encryption will be used             |
 
-### Incompatible Protocol Version (`0x19`)
+### Incompatible Protocol Version (`0x19`) | Server → Client
+This packet is sent when the client is attempting to connect to a server that is running on a different RakNet version.
 
 | Field Name       | Field Type | Documentation                                      |
 |------------------|------------|----------------------------------------------------|
