@@ -14,19 +14,16 @@ class UnconnectedMessageHandler(private val server: Server): SimpleChannelInboun
     override fun acceptInboundMessage(msg: Any?): Boolean =  msg is PacketEnvelope<*> && msg.content() is UnconnectedPacket
 
     override fun channelRead0(ctx: ChannelHandlerContext, msg: PacketEnvelope<UnconnectedPacket>) {
-        val packet = msg.content()
-        val response: UnconnectedPacket = when(packet) {
+        val response: UnconnectedPacket = when(val packet = msg.content()) {
             is UnconnectedPing -> {
-                server.listeners.forEach { it.handleUnconnectedPing(msg.sender(), packet) }
                 UnconnectedPong(
                     pingId = packet.time,
                     magic = Magic,
                     guid = server.guid.mostSignificantBits,
-                    serverName = server.identifier.toString(),
+                    serverName = "" // TODO: Server name
                 )
             }
             is OpenConnectionRequest1 -> {
-                server.listeners.forEach { it.handleOpenConnectionRequest1(msg.sender(), packet) }
                 OpenConnectionReply1(
                     magic = Magic,
                     serverGuid = server.guid.mostSignificantBits,
@@ -35,7 +32,6 @@ class UnconnectedMessageHandler(private val server: Server): SimpleChannelInboun
                 )
             }
             is OpenConnectionRequest2 -> {
-                server.listeners.forEach { it.handleOpenConnectionRequest2(msg.sender(), packet) }
                 val response = OpenConnectionReply2(
                     magic = Magic,
                     serverGuid = server.guid.mostSignificantBits,

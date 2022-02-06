@@ -21,15 +21,12 @@ import kotlin.collections.HashMap
 class Server(
     val port: Int = 19132,
     var maxConnections: Int = 250,
-    var name: String = "RakNet Server",
-    val guid: UUID = UUID.randomUUID(),
-    var identifier: Identifier? = null,
+    val guid: UUID = UUID.randomUUID()
 ) {
     init { ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.PARANOID) }
 
     private val group = NioEventLoopGroup()
     private val startTime: Long = System.currentTimeMillis()
-    val listeners: MutableList<ServerListener> = mutableListOf()
 
     private val connections: HashMap<InetSocketAddress, Connection> = HashMap()
 
@@ -68,12 +65,10 @@ class Server(
         group.shutdownGracefully()
     }
 
-    fun listen(listener: ServerListener) = listeners.add(listener)
 
     fun getUptime() = System.currentTimeMillis() - startTime
 
     fun addConnection(connection: Connection) {
-        listeners.forEach { it.handleNewConnection(connection) }
         connections[connection.address] = connection
     }
 
