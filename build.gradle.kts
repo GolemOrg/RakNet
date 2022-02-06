@@ -14,6 +14,8 @@ repositories {
 dependencies {
     implementation("io.netty:netty-all:4.1.72.Final")
     implementation("com.esotericsoftware.reflectasm:reflectasm:1.09")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.3.2")
     testImplementation("com.github.GolemOrg:benchmark-kt:1.0.3")
     testImplementation("org.jetbrains.kotlin:kotlin-test:1.6.0")
 }
