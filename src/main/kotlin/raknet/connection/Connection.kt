@@ -27,6 +27,6 @@ class Connection(
 
     private fun send(packet: ConnectedPacket) {}
 
-    fun close(reason: String) {}
+    fun close(reason: DisconnectionReason) {}
 
 }
