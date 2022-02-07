@@ -4,11 +4,11 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.socket.DatagramPacket
 import io.netty.handler.codec.MessageToMessageDecoder
 import raknet.handler.MessageEnvelope
-import raknet.packet.MessageType
-import raknet.packet.OfflineMessage
-import raknet.packet.protocol.OpenConnectionRequest1
-import raknet.packet.protocol.OpenConnectionRequest2
-import raknet.packet.protocol.UnconnectedPing
+import raknet.message.MessageType
+import raknet.message.OfflineMessage
+import raknet.message.protocol.OpenConnectionRequest1
+import raknet.message.protocol.OpenConnectionRequest2
+import raknet.message.protocol.UnconnectedPing
 
 class UnconnectedMessageDecoder: MessageToMessageDecoder<DatagramPacket>() {
 

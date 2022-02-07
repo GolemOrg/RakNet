@@ -1,7 +1,7 @@
-package raknet.packet.protocol
+package raknet.message.protocol
 
-import raknet.packet.OnlineMessage
-import raknet.packet.MessageType
+import raknet.message.OnlineMessage
+import raknet.message.MessageType
 
 class DisconnectionNotification : OnlineMessage(MessageType.DISCONNECTION_NOTIFICATION.id()) {
 

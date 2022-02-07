@@ -4,7 +4,7 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
 import raknet.Server
 import raknet.handler.MessageEnvelope
-import raknet.packet.*
+import raknet.message.*
 
 class ConnectedMessageHandler(private val server: Server): SimpleChannelInboundHandler<MessageEnvelope<OnlineMessage>>() {
 

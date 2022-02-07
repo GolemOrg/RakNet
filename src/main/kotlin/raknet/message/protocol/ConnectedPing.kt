@@ -1,8 +1,8 @@
-package raknet.packet.protocol
+package raknet.message.protocol
 
 import io.netty.buffer.ByteBuf
-import raknet.packet.OnlineMessage
-import raknet.packet.MessageType
+import raknet.message.OnlineMessage
+import raknet.message.MessageType
 
 class ConnectedPing(
     val time: Long

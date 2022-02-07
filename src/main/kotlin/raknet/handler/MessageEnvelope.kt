@@ -1,7 +1,7 @@
 package raknet.handler
 
 import io.netty.channel.DefaultAddressedEnvelope
-import raknet.packet.DataMessage
+import raknet.message.DataMessage
 import java.net.InetSocketAddress
 
 class MessageEnvelope<T: DataMessage>(

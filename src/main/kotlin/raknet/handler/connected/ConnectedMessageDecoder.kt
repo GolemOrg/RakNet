@@ -5,7 +5,7 @@ import io.netty.channel.socket.DatagramPacket
 import io.netty.handler.codec.MessageToMessageDecoder
 import raknet.Server
 import raknet.handler.MessageEnvelope
-import raknet.packet.*
+import raknet.message.*
 
 class ConnectedMessageDecoder(private val server: Server): MessageToMessageDecoder<DatagramPacket>() {
 

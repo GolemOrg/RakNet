@@ -1,4 +1,4 @@
-package raknet.packet
+package raknet.message
 
 import io.netty.buffer.ByteBuf
 
