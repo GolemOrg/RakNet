@@ -1,13 +1,13 @@
 package raknet.packet.protocol
 
 import io.netty.buffer.ByteBuf
-import raknet.packet.ConnectedPacket
+import raknet.packet.OnlineMessage
 import raknet.packet.MessageType
 
 class IncompatibleProtocol(
     var protocol: Int,
     var serverGuid: Long,
-): ConnectedPacket(MessageType.INCOMPATIBLE_PROTOCOL_VERSION.id()) {
+): OnlineMessage(MessageType.INCOMPATIBLE_PROTOCOL_VERSION.id()) {
 
     override fun encodeOrder(): Array<Any> = arrayOf(protocol, serverGuid)
 

@@ -23,9 +23,9 @@ class Connection(
 
     private fun tick() {}
 
-    private fun handle(packet: DataPacket) {}
+    private fun handle(packet: DataMessage) {}
 
-    private fun send(packet: ConnectedPacket) {}
+    private fun send(packet: OnlineMessage) {}
 
     fun close(reason: DisconnectionReason) {}
 

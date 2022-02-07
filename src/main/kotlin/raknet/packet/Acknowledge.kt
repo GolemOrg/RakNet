@@ -13,7 +13,7 @@ data class Record(val sequenceNumber: UIntLE, val endSequenceNumber: UIntLE? = n
     override fun toString() = "Record(sequenceNumber=$sequenceNumber, endSequenceNumber=$endSequenceNumber)"
 }
 
-sealed class Base(id: Int, val records: MutableList<Record>): ConnectedPacket(id) {
+sealed class Base(id: Int, val records: MutableList<Record>): OnlineMessage(id) {
     override fun encodeOrder(): Array<Any> = arrayOf(records.size.toShort(), records)
 }
 

@@ -3,9 +3,9 @@ package raknet.handler.unconnected
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.socket.DatagramPacket
 import io.netty.handler.codec.MessageToMessageDecoder
-import raknet.handler.PacketEnvelope
+import raknet.handler.MessageEnvelope
 import raknet.packet.MessageType
-import raknet.packet.OfflinePacket
+import raknet.packet.OfflineMessage
 import raknet.packet.protocol.OpenConnectionRequest1
 import raknet.packet.protocol.OpenConnectionRequest2
 import raknet.packet.protocol.UnconnectedPing
@@ -16,7 +16,7 @@ class UnconnectedMessageDecoder: MessageToMessageDecoder<DatagramPacket>() {
         val buffer = msg.content()
         // We need a packet ID if we even want to handle this
         if(buffer.readableBytes() < 1) return
-        val decoded: OfflinePacket = when(MessageType.find(buffer.readUnsignedByte().toInt())) {
+        val decoded: OfflineMessage = when(MessageType.find(buffer.readUnsignedByte().toInt())) {
             MessageType.UNCONNECTED_PING -> UnconnectedPing.from(buffer)
             MessageType.OPEN_CONNECTION_REQUEST_1 -> OpenConnectionRequest1.from(buffer)
             MessageType.OPEN_CONNECTION_REQUEST_2 -> OpenConnectionRequest2.from(buffer)
@@ -27,7 +27,7 @@ class UnconnectedMessageDecoder: MessageToMessageDecoder<DatagramPacket>() {
                 return
             }
         }
-        output.add(PacketEnvelope(decoded, msg.sender()))
+        output.add(MessageEnvelope(decoded, msg.sender()))
     }
 
 }

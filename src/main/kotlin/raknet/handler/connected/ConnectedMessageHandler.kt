@@ -3,14 +3,14 @@ package raknet.handler.connected
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
 import raknet.Server
-import raknet.handler.PacketEnvelope
+import raknet.handler.MessageEnvelope
 import raknet.packet.*
 
-class ConnectedMessageHandler(private val server: Server): SimpleChannelInboundHandler<PacketEnvelope<ConnectedPacket>>() {
+class ConnectedMessageHandler(private val server: Server): SimpleChannelInboundHandler<MessageEnvelope<OnlineMessage>>() {
 
-    override fun acceptInboundMessage(msg: Any?): Boolean =  msg is PacketEnvelope<*> && msg.content() is ConnectedPacket
+    override fun acceptInboundMessage(msg: Any?): Boolean =  msg is MessageEnvelope<*> && msg.content() is OnlineMessage
 
-    override fun channelRead0(ctx: ChannelHandlerContext, msg: PacketEnvelope<ConnectedPacket>) {
+    override fun channelRead0(ctx: ChannelHandlerContext, msg: MessageEnvelope<OnlineMessage>) {
 
     }
 }

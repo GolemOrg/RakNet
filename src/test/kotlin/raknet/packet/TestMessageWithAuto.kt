@@ -4,11 +4,11 @@ import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import raknet.encode
 
-class TestPacketWithAuto(
+class TestMessageWithAuto(
     private val testLong: Long,
     private val testString: String,
     private val testRandom: Int,
-): DataPacket(0xCD) {
+): DataMessage(0xCD) {
 
     override fun decode(buffer: ByteBuf) {}
 
