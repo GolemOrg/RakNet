@@ -2,6 +2,7 @@ package raknet.handler.unconnected
 
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
+import raknet.CURRENT_PROTOCOL_VERSION
 import raknet.types.Magic
 import raknet.Server
 import raknet.connection.Connection
@@ -25,12 +26,20 @@ class UnconnectedMessageHandler(private val server: Server): SimpleChannelInboun
                 )
             }
             is OpenConnectionRequest1 -> {
-                OpenConnectionReply1(
-                    magic = Magic,
-                    serverGuid = server.guid.mostSignificantBits,
-                    useSecurity = false,
-                    mtuSize = (packet.mtuSize + 28).toShort(),
-                )
+                if(packet.protocolVersion != CURRENT_PROTOCOL_VERSION) {
+                    IncompatibleProtocol(
+                        protocol = CURRENT_PROTOCOL_VERSION,
+                        magic = Magic,
+                        serverGuid = server.guid.mostSignificantBits,
+                    )
+                } else {
+                    OpenConnectionReply1(
+                        magic = Magic,
+                        serverGuid = server.guid.mostSignificantBits,
+                        useSecurity = false,
+                        mtuSize = (packet.mtuSize + 28).toShort(),
+                    )
+                }
             }
             is OpenConnectionRequest2 -> {
                 val response = OpenConnectionReply2(
