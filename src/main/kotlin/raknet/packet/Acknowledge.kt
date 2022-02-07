@@ -1,10 +1,11 @@
 package raknet.packet
 
 import io.netty.buffer.ByteBuf
-import raknet.Codable
+import raknet.codec.Decodable
+import raknet.codec.Encodable
 import raknet.types.UIntLE
 
-data class Record(val sequenceNumber: UIntLE, val endSequenceNumber: UIntLE? = null): Codable {
+data class Record(val sequenceNumber: UIntLE, val endSequenceNumber: UIntLE? = null): Encodable, Decodable {
     override fun encode(buffer: ByteBuf) {}
 
     override fun decode(buffer: ByteBuf): Any = Unit

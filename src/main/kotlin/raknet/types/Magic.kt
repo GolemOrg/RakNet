@@ -1,10 +1,11 @@
 package raknet.types
 
 import io.netty.buffer.ByteBuf
-import raknet.Codable
+import raknet.codec.Decodable
+import raknet.codec.Encodable
 import raknet.readToByteArray
 
-object Magic : Codable {
+object Magic : Encodable, Decodable {
 
     private val bytes = byteArrayOf(
         0x00.toByte(),
