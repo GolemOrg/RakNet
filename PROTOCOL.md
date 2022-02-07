@@ -151,3 +151,17 @@ This packet is sent when the client is attempting to connect to a server that is
 | Protocol Version | Byte       | The protocol version of the server                 |
 | Magic            | Magic      | See above in "Data Types" for more about this type |
 | Server GUID      | Long       | The unique identifier sent by the server           |
+
+
+## Connected Packets
+
+In the RakNet protocol, all connected packets are contained inside a container format called a `Datagram`.
+
+### Datagram
+
+
+### Frame / Encapsulated Packet
+
+
+### Connected Ping (`0x00`) | Client → Server or Server → Client
+This packet is usually sent by the client to the server, but can also be sent by the server to the client.
