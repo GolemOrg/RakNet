@@ -53,7 +53,7 @@ For IPv6 addresses, the address is encoded as the following:
 
 ### Magic
 
-In RakNet, Magic, also known as OFFLINE_MESSAGE_DATA_ID in the original source, is a set of bytes that is
+In RakNet, Magic, also known as OFFLINE_MESSAGE_DATA_ID in the original source, is a set of 16 bytes that is
 used as a way to distinguish between offline messages and the rest of the protocol.
 The hex bytes for Magic are:
 `0x00,0xFF,0xFF,0x00,0xFE,0xFE,0xFE,0xFE,0xFD,0xFD,0xFD,0xFD,0x12,0x34,0x56,0x78`
