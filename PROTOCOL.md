@@ -37,7 +37,7 @@ For IPv4 addresses, the address is encoded as the following:
 | Encode Order   | Type           | Example Value    | Documentation                                                                            |
 |----------------|----------------|------------------|------------------------------------------------------------------------------------------|
 | Address Family | Byte           | 4                | IPv4                                                                                     |
-| Bytes          | Byte Array     | [192, 168, 0, 1] | Each part of the address is inverted using bitwise `~` and then masked with bitwise `&`. |
+| Bytes          | Byte Array (4) | [192, 168, 0, 1] | Each part of the address is inverted using bitwise `~` and then masked with bitwise `&`. |
 | Port           | Unsigned Short | 19132            |                                                                                          |
 
 For IPv6 addresses, the address is encoded as the following:
@@ -48,7 +48,7 @@ For IPv6 addresses, the address is encoded as the following:
 | AF_INET6       | Short (Little Endian) | 10                                               | AF (Address Family), INET6 (IPv6)                       |
 | Port           | Short                 | 19132                                            |                                                         |
 | Flow Info      | Int                   | 0                                                | A part of the IPv6 protocol. `0` works fine as a value. |
-| Address        | Byte Array            | [0000, 0000, 0000, 0000, 0000, 0000, 0000, 0001] |                                                         |
+| Address        | Byte Array (16)       | [0000, 0000, 0000, 0000, 0000, 0000, 0000, 0001] |                                                         |
 | Scope ID       | Int                   | 0                                                | A part of the IPv6 protocol. `0` works fine as a value. |
 
 ### Magic
