@@ -42,22 +42,21 @@ class UnconnectedMessageHandler(private val server: Server): SimpleChannelInboun
                 }
             }
             is OpenConnectionRequest2 -> {
-                val response = OpenConnectionReply2(
+                server.addConnection(Connection(
+                    address = msg.sender(),
+                    server = server,
+                    context = ctx,
+                    mtuSize = packet.mtuSize,
+                    guid = packet.clientGuid
+                ))
+
+                OpenConnectionReply2(
                     magic = Magic,
                     serverGuid = server.guid.mostSignificantBits,
                     mtuSize = packet.mtuSize,
                     clientAddress = packet.serverAddress,
                     encryptionEnabled = false,
                 )
-
-                server.addConnection(Connection(
-                    address = msg.sender(),
-                    server = server,
-                    context = ctx,
-                    mtuSize = response.mtuSize,
-                    guid = packet.clientGuid
-                ))
-                response
             }
             else -> throw IllegalArgumentException("Unsupported packet: $packet")
         }
