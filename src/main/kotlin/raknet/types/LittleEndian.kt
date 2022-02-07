@@ -1,7 +1,7 @@
-package raknet
+package raknet.types
 
 import io.netty.buffer.ByteBuf
-import raknet.codec.Codable
+import raknet.Codable
 
 @JvmInline
 value class IntLE(private val value: Int): Codable {

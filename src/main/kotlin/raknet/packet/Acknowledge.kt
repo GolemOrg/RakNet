@@ -1,8 +1,8 @@
 package raknet.packet
 
 import io.netty.buffer.ByteBuf
-import raknet.UIntLE
-import raknet.codec.Codable
+import raknet.Codable
+import raknet.types.UIntLE
 
 data class Record(val sequenceNumber: UIntLE, val endSequenceNumber: UIntLE? = null): Codable {
     override fun encode(buffer: ByteBuf) {}

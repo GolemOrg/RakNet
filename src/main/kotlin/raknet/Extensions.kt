@@ -1,7 +1,6 @@
 package raknet
 
 import io.netty.buffer.ByteBuf
-import raknet.codec.Codable
 import java.net.Inet4Address
 import java.net.Inet6Address
 import java.net.InetAddress
@@ -13,7 +12,7 @@ fun ByteBuf.readAddress(): InetSocketAddress {
     val port: Int
     when(val type: Int = readByte().toInt()) {
         4 -> {
-            addressBytes = readToByteArray(4).map { it.inv().and(0xFF.toByte()) }.toByteArray()
+            addressBytes = readToByteArray(4).map { it.inv() and 0xFF.toByte() }.toByteArray()
             port = readUnsignedShort()
         }
         6 -> {
@@ -33,8 +32,16 @@ fun ByteBuf.readToByteArray(length: Int): ByteArray {
     readBytes(bytes)
     return bytes
 }
-
 fun ByteBuf.readString(): String = readCharSequence(readUnsignedShort(), Charsets.UTF_8).toString()
+
+
+fun ByteArray.flip(): ByteArray {
+    val result = ByteArray(this.size)
+    for (i in 0 until this.size) {
+        result[i] = (this[i] and 0xFF.toByte()).inv()
+    }
+    return result
+}
 
 fun Any?.decode(buffer: ByteBuf): Any? {
     return when(this) {
@@ -51,14 +58,6 @@ fun Any?.decode(buffer: ByteBuf): Any? {
         is Codable -> this.decode(buffer)
         else -> null
     }
-}
-
-fun ByteArray.flip(): ByteArray {
-    val result = ByteArray(this.size)
-    for (i in 0 until this.size) {
-        result[i] = (this[i] and 0xFF.toByte()).inv()
-    }
-    return result
 }
 
 fun Any?.encode(buffer: ByteBuf) {
@@ -95,7 +94,6 @@ fun Any?.encode(buffer: ByteBuf) {
         }
         is Array<*> -> this.forEach { it.encode(buffer) }
         is ArrayList<*> -> this.forEach { it.encode(buffer) }
-        // Don't worry about other cases
         else -> {
             val type = this?.javaClass!!.simpleName ?: "null"
             println("Encountered unknown type: $type when encoding value to buffer")
