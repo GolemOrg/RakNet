@@ -7,6 +7,7 @@ import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.nio.NioDatagramChannel
 import io.netty.util.ResourceLeakDetector
 import raknet.connection.Connection
+import raknet.connection.DisconnectionReason
 import raknet.handler.MessageEncoder
 import raknet.handler.connected.ConnectedMessageDecoder
 import raknet.handler.connected.ConnectedMessageHandler
@@ -59,7 +60,7 @@ class Server(
     }
 
     fun shutdown() {
-        connections.values.forEach { it.close("Server shutdown") }
+        connections.values.forEach { it.close(DisconnectionReason.ServerClosed) }
         group.shutdownGracefully()
     }
 
