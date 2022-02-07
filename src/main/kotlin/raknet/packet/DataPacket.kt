@@ -2,7 +2,7 @@ package raknet.packet
 
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.ByteBufAllocator
-import raknet.codec.encode
+import raknet.encode
 
 abstract class DataPacket(open val id: Int) : Packet {
 
@@ -36,5 +36,7 @@ abstract class DataPacket(open val id: Int) : Packet {
 
     override fun toString(): String = "DataPacket(id=$id)"
 
-
 }
+
+abstract class ConnectedPacket(override val id: Int) : DataPacket(id)
+abstract class OfflinePacket(override val id: Int): DataPacket(id)

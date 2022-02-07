@@ -3,7 +3,7 @@ package raknet.packet.protocol
 import io.netty.buffer.ByteBuf
 import raknet.enums.AddressCount
 import raknet.packet.ConnectedPacket
-import raknet.packet.PacketType
+import raknet.packet.MessageType
 import raknet.readAddress
 import java.net.InetSocketAddress
 
@@ -13,7 +13,7 @@ class ConnectionRequestAccepted(
     var internalIds: Array<InetSocketAddress> = DEFAULT_ADDRESSES,
     var requestTime: Long,
     var time: Long
-): ConnectedPacket(PacketType.CONNECTION_REQUEST_ACCEPTED.id()) {
+): ConnectedPacket(MessageType.CONNECTION_REQUEST_ACCEPTED.id()) {
 
     override fun encodeOrder(): Array<Any> = arrayOf(clientAddress, systemIndex, internalIds, requestTime, time)
 
