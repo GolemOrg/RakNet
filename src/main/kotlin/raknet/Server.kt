@@ -13,8 +13,8 @@ import raknet.handler.connected.ConnectedMessageDecoder
 import raknet.handler.connected.ConnectedMessageHandler
 import raknet.handler.unconnected.UnconnectedMessageDecoder
 import raknet.handler.unconnected.UnconnectedMessageHandler
-import raknet.packet.OnlineMessage
-import raknet.packet.OfflineMessage
+import raknet.message.OnlineMessage
+import raknet.message.OfflineMessage
 import java.net.InetSocketAddress
 import java.util.*
 import kotlin.collections.HashMap

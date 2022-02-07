@@ -1,4 +1,4 @@
-package raknet.packet
+package raknet.message
 
 import benchmark_kt.Benchmark
 import benchmark_kt.BenchmarkTarget

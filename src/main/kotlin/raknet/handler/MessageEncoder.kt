@@ -3,7 +3,7 @@ package raknet.handler
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.socket.DatagramPacket
 import io.netty.handler.codec.MessageToMessageEncoder
-import raknet.packet.DataMessage
+import raknet.message.DataMessage
 
 class MessageEncoder<T: DataMessage>: MessageToMessageEncoder<MessageEnvelope<T>>() {
 

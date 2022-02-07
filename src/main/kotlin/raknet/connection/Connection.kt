@@ -3,7 +3,7 @@ package raknet.connection
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.nio.NioEventLoopGroup
 import raknet.Server
-import raknet.packet.*
+import raknet.message.*
 import java.net.InetSocketAddress
 import java.util.concurrent.TimeUnit
 
@@ -14,7 +14,6 @@ class Connection(
     private val mtuSize: Short,
     private val guid: Long,
 ) {
-
     private var worker: NioEventLoopGroup = NioEventLoopGroup()
 
     init {
@@ -23,10 +22,13 @@ class Connection(
 
     private fun tick() {}
 
-    private fun handle(packet: DataMessage) {}
+    private fun handle(packet: OnlineMessage) {}
 
     private fun send(packet: OnlineMessage) {}
 
-    fun close(reason: DisconnectionReason) {}
+    fun close(reason: DisconnectionReason) {
+        worker.shutdownGracefully()
+        context.close()
+    }
 
 }

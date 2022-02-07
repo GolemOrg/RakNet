@@ -1,10 +1,10 @@
-package raknet.packet.protocol
+package raknet.message.protocol
 
 import io.netty.buffer.ByteBuf
 import raknet.types.Magic
 import raknet.types.Magic.readMagic
-import raknet.packet.OfflineMessage
-import raknet.packet.MessageType
+import raknet.message.OfflineMessage
+import raknet.message.MessageType
 import raknet.readAddress
 import java.net.InetSocketAddress
 

@@ -1,4 +1,4 @@
-package raknet.packet
+package raknet.message
 
 enum class MessageType(private val id: Int) {
     CONNECTED_PING(0x00),

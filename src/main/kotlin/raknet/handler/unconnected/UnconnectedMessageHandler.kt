@@ -6,8 +6,8 @@ import raknet.types.Magic
 import raknet.Server
 import raknet.connection.Connection
 import raknet.handler.MessageEnvelope
-import raknet.packet.OfflineMessage
-import raknet.packet.protocol.*
+import raknet.message.OfflineMessage
+import raknet.message.protocol.*
 
 class UnconnectedMessageHandler(private val server: Server): SimpleChannelInboundHandler<MessageEnvelope<OfflineMessage>>() {
 
