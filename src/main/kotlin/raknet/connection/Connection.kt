@@ -4,6 +4,7 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.nio.NioEventLoopGroup
 import raknet.Server
 import raknet.message.*
+import raknet.message.datagram.Datagram
 import java.net.InetSocketAddress
 import java.util.concurrent.TimeUnit
 
@@ -14,6 +15,7 @@ class Connection(
     private val mtuSize: Short,
     private val guid: Long,
 ) {
+    private val internalsHandler = InternalsHandler(this)
     private var worker: NioEventLoopGroup = NioEventLoopGroup()
 
     init {
@@ -21,6 +23,10 @@ class Connection(
     }
 
     private fun tick() {}
+
+    fun handleInternal(packet: Acknowledge) = internalsHandler.handle(packet)
+    fun handleInternal(packet: NAcknowledge) = internalsHandler.handle(packet)
+    fun handleInternal(packet: Datagram) = internalsHandler.handle(packet)
 
     private fun handle(packet: OnlineMessage) {}
 
