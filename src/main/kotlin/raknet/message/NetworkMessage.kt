@@ -20,7 +20,9 @@ abstract class DataMessage(open val id: Int) : Message {
 
     abstract fun encodeOrder(): Array<Any>
 
-    open fun encodeHeader(buffer: ByteBuf): ByteBuf = buffer.writeByte(id)
+    open fun encodeHeader(buffer: ByteBuf) {
+        buffer.writeByte(id)
+    }
 
     fun prepare(): ByteBuf {
         val encoded = encode()
