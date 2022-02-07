@@ -16,7 +16,7 @@ sealed class DisconnectionReason {
     object Error: DisconnectionReason() {
         override fun toString(): String = "Internal Error"
     }
-    class Custom(val reason: String) : DisconnectionReason() {
+    class Custom(private val reason: String) : DisconnectionReason() {
         override fun toString(): String = reason
     }
     object Unknown: DisconnectionReason() {
