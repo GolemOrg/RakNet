@@ -11,7 +11,7 @@ fun main(args: Array<String>) {
         targets = mutableListOf(
             BenchmarkTarget("TestPacketWithoutAuto") {
                 val value = Random.nextInt()
-                val packet = TestPacketWithoutAuto(
+                val packet = TestMessageWithoutAuto(
                     value.toLong(),
                     "Hello World",
                     value
@@ -20,7 +20,7 @@ fun main(args: Array<String>) {
             },
             BenchmarkTarget("TestPacketWithAuto") {
                 val value = Random.nextInt()
-                val packet = TestPacketWithAuto(
+                val packet = TestMessageWithAuto(
                     value.toLong(),
                     "Hello World",
                     value

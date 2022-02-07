@@ -1,13 +1,13 @@
 package raknet.packet.protocol
 
 import io.netty.buffer.ByteBuf
-import raknet.packet.ConnectedPacket
+import raknet.packet.OnlineMessage
 import raknet.packet.MessageType
 
 class ConnectionRequest(
     var guid: Long,
     var time: Long,
-): ConnectedPacket(MessageType.CONNECTION_REQUEST.id()) {
+): OnlineMessage(MessageType.CONNECTION_REQUEST.id()) {
 
     override fun encodeOrder(): Array<Any> = arrayOf(guid, time)
 

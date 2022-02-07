@@ -1,7 +1,7 @@
 package raknet.packet.protocol
 
 import io.netty.buffer.ByteBuf
-import raknet.packet.ConnectedPacket
+import raknet.packet.OnlineMessage
 import raknet.packet.MessageType
 import raknet.readAddress
 import java.net.InetSocketAddress
@@ -9,7 +9,7 @@ import java.net.InetSocketAddress
 class NewIncomingConnection(
     var address: InetSocketAddress,
     var internalAddress: InetSocketAddress,
-): ConnectedPacket(MessageType.NEW_INCOMING_CONNECTION.id()) {
+): OnlineMessage(MessageType.NEW_INCOMING_CONNECTION.id()) {
 
     override fun encodeOrder(): Array<Any> = arrayOf(address, internalAddress)
 

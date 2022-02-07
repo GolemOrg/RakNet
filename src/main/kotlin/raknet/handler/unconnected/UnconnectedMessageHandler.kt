@@ -5,22 +5,23 @@ import io.netty.channel.SimpleChannelInboundHandler
 import raknet.types.Magic
 import raknet.Server
 import raknet.connection.Connection
-import raknet.handler.PacketEnvelope
-import raknet.packet.OfflinePacket
+import raknet.handler.MessageEnvelope
+import raknet.packet.OfflineMessage
 import raknet.packet.protocol.*
 
-class UnconnectedMessageHandler(private val server: Server): SimpleChannelInboundHandler<PacketEnvelope<OfflinePacket>>() {
+class UnconnectedMessageHandler(private val server: Server): SimpleChannelInboundHandler<MessageEnvelope<OfflineMessage>>() {
 
-    override fun acceptInboundMessage(msg: Any?): Boolean =  msg is PacketEnvelope<*> && msg.content() is OfflinePacket
+    override fun acceptInboundMessage(msg: Any?): Boolean =  msg is MessageEnvelope<*> && msg.content() is OfflineMessage
 
-    override fun channelRead0(ctx: ChannelHandlerContext, msg: PacketEnvelope<OfflinePacket>) {
-        val response: OfflinePacket = when(val packet = msg.content()) {
+    override fun channelRead0(ctx: ChannelHandlerContext, msg: MessageEnvelope<OfflineMessage>) {
+        val response: OfflineMessage = when(val packet = msg.content()) {
             is UnconnectedPing -> {
                 UnconnectedPong(
                     pingId = packet.time,
                     magic = Magic,
                     guid = server.guid.mostSignificantBits,
-                    serverName = "" // TODO: Server name
+                    // TODO: Server name
+                    serverName = "MCPE;Golem Server;475;1.18.0;0;100;${server.guid.mostSignificantBits};Golem;Creative;1;19132;19132"
                 )
             }
             is OpenConnectionRequest1 -> {
@@ -51,7 +52,7 @@ class UnconnectedMessageHandler(private val server: Server): SimpleChannelInboun
             }
             else -> throw IllegalArgumentException("Unsupported packet: $packet")
         }
-        ctx.writeAndFlush(PacketEnvelope(response, msg.sender()))
+        ctx.writeAndFlush(MessageEnvelope(response, msg.sender()))
     }
 
 }

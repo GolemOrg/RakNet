@@ -13,8 +13,8 @@ import raknet.handler.connected.ConnectedMessageDecoder
 import raknet.handler.connected.ConnectedMessageHandler
 import raknet.handler.unconnected.UnconnectedMessageDecoder
 import raknet.handler.unconnected.UnconnectedMessageHandler
-import raknet.packet.ConnectedPacket
-import raknet.packet.OfflinePacket
+import raknet.packet.OnlineMessage
+import raknet.packet.OfflineMessage
 import java.net.InetSocketAddress
 import java.util.*
 import kotlin.collections.HashMap
@@ -42,8 +42,8 @@ class Server(
                             UnconnectedMessageDecoder(),
                             ConnectedMessageDecoder(this@Server),
                             // Encoders
-                            MessageEncoder<OfflinePacket>(),
-                            MessageEncoder<ConnectedPacket>(),
+                            MessageEncoder<OfflineMessage>(),
+                            MessageEncoder<OnlineMessage>(),
                             // Handlers
                             UnconnectedMessageHandler(this@Server),
                             ConnectedMessageHandler(this@Server),

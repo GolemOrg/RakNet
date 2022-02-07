@@ -4,7 +4,7 @@ import io.netty.buffer.ByteBuf
 import io.netty.buffer.ByteBufAllocator
 import raknet.encode
 
-abstract class DataPacket(open val id: Int) : Packet {
+abstract class DataMessage(open val id: Int) : Message {
 
     override fun encode(): ByteBuf {
         val buffer = ByteBufAllocator.DEFAULT.ioBuffer()
@@ -38,5 +38,5 @@ abstract class DataPacket(open val id: Int) : Packet {
 
 }
 
-abstract class ConnectedPacket(override val id: Int) : DataPacket(id)
-abstract class OfflinePacket(override val id: Int): DataPacket(id)
+abstract class OnlineMessage(override val id: Int) : DataMessage(id)
+abstract class OfflineMessage(override val id: Int): DataMessage(id)

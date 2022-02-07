@@ -3,7 +3,7 @@ package raknet.packet
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 
-class TestPacketWithoutAuto(val testLong: Long, val testString: String, val testRandom: Int): DataPacket(0xEF) {
+class TestMessageWithoutAuto(val testLong: Long, val testString: String, val testRandom: Int): DataMessage(0xEF) {
 
     override fun encodeOrder(): Array<Any> {
         return arrayOf(testLong, testString, testRandom) // Unused as we override encode

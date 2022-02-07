@@ -3,14 +3,14 @@ package raknet.packet.protocol
 import io.netty.buffer.ByteBuf
 import raknet.types.Magic
 import raknet.types.Magic.readMagic
-import raknet.packet.OfflinePacket
+import raknet.packet.OfflineMessage
 import raknet.packet.MessageType
 
 class OpenConnectionRequest1(
     var magic: Magic,
     var protocolVersion: Int,
     var mtuSize: Short
-): OfflinePacket(MessageType.OPEN_CONNECTION_REQUEST_1.id()) {
+): OfflineMessage(MessageType.OPEN_CONNECTION_REQUEST_1.id()) {
 
     override fun encodeOrder(): Array<Any> =  arrayOf(magic, protocolVersion, mtuSize)
 
