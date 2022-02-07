@@ -1,4 +1,4 @@
-package raknet.codec
+package raknet
 
 import io.netty.buffer.ByteBuf
 

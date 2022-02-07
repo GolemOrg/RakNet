@@ -1,8 +1,8 @@
 package raknet.packet.protocol
 
 import io.netty.buffer.ByteBuf
-import raknet.Magic
-import raknet.Magic.readMagic
+import raknet.types.Magic
+import raknet.types.Magic.readMagic
 import raknet.packet.OfflinePacket
 import raknet.packet.MessageType
 import raknet.readString

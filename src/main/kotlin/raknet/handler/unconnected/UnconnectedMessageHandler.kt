@@ -2,7 +2,7 @@ package raknet.handler.unconnected
 
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
-import raknet.Magic
+import raknet.types.Magic
 import raknet.Server
 import raknet.connection.Connection
 import raknet.handler.PacketEnvelope

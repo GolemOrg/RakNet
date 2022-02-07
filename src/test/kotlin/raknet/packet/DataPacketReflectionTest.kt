@@ -9,7 +9,7 @@ fun main(args: Array<String>) {
     val benchmark = Benchmark(
         name = "DataPacketReflectionTest",
         targets = mutableListOf(
-            BenchmarkTarget("TestPacketWithAuto") {
+            BenchmarkTarget("TestPacketWithoutAuto") {
                 val value = Random.nextInt()
                 val packet = TestPacketWithoutAuto(
                     value.toLong(),
@@ -18,7 +18,7 @@ fun main(args: Array<String>) {
                 )
                 packet.encode()
             },
-            BenchmarkTarget("TestPacketWithoutAuto") {
+            BenchmarkTarget("TestPacketWithAuto") {
                 val value = Random.nextInt()
                 val packet = TestPacketWithAuto(
                     value.toLong(),
