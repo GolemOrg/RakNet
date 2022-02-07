@@ -2,14 +2,14 @@ package raknet.packet.protocol
 
 import io.netty.buffer.ByteBuf
 import raknet.packet.ConnectedPacket
-import raknet.packet.PacketType
+import raknet.packet.MessageType
 import raknet.readAddress
 import java.net.InetSocketAddress
 
 class NewIncomingConnection(
     var address: InetSocketAddress,
     var internalAddress: InetSocketAddress,
-): ConnectedPacket(PacketType.NEW_INCOMING_CONNECTION.id()) {
+): ConnectedPacket(MessageType.NEW_INCOMING_CONNECTION.id()) {
 
     override fun encodeOrder(): Array<Any> = arrayOf(address, internalAddress)
 

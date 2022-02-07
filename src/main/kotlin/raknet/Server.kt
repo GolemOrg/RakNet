@@ -13,21 +13,19 @@ import raknet.handler.connected.ConnectedMessageHandler
 import raknet.handler.unconnected.UnconnectedMessageDecoder
 import raknet.handler.unconnected.UnconnectedMessageHandler
 import raknet.packet.ConnectedPacket
-import raknet.packet.UnconnectedPacket
+import raknet.packet.OfflinePacket
 import java.net.InetSocketAddress
 import java.util.*
 import kotlin.collections.HashMap
 
 class Server(
     val port: Int = 19132,
-    var maxConnections: Int = 250,
     val guid: UUID = UUID.randomUUID()
 ) {
     init { ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.PARANOID) }
 
     private val group = NioEventLoopGroup()
     private val startTime: Long = System.currentTimeMillis()
-
     private val connections: HashMap<InetSocketAddress, Connection> = HashMap()
 
     fun start() {
@@ -43,7 +41,7 @@ class Server(
                             UnconnectedMessageDecoder(),
                             ConnectedMessageDecoder(this@Server),
                             // Encoders
-                            MessageEncoder<UnconnectedPacket>(),
+                            MessageEncoder<OfflinePacket>(),
                             MessageEncoder<ConnectedPacket>(),
                             // Handlers
                             UnconnectedMessageHandler(this@Server),

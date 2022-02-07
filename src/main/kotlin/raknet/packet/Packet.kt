@@ -13,9 +13,6 @@ import io.netty.buffer.ByteBuf
  * We use this interface as a way to have a uniform way to encode & decode any data
  */
 interface Packet {
-
     fun encode(): ByteBuf
-
     fun decode(buffer: ByteBuf)
-
 }

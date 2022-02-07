@@ -6,15 +6,15 @@ import raknet.Magic
 import raknet.Server
 import raknet.connection.Connection
 import raknet.handler.PacketEnvelope
-import raknet.packet.UnconnectedPacket
+import raknet.packet.OfflinePacket
 import raknet.packet.protocol.*
 
-class UnconnectedMessageHandler(private val server: Server): SimpleChannelInboundHandler<PacketEnvelope<UnconnectedPacket>>() {
+class UnconnectedMessageHandler(private val server: Server): SimpleChannelInboundHandler<PacketEnvelope<OfflinePacket>>() {
 
-    override fun acceptInboundMessage(msg: Any?): Boolean =  msg is PacketEnvelope<*> && msg.content() is UnconnectedPacket
+    override fun acceptInboundMessage(msg: Any?): Boolean =  msg is PacketEnvelope<*> && msg.content() is OfflinePacket
 
-    override fun channelRead0(ctx: ChannelHandlerContext, msg: PacketEnvelope<UnconnectedPacket>) {
-        val response: UnconnectedPacket = when(val packet = msg.content()) {
+    override fun channelRead0(ctx: ChannelHandlerContext, msg: PacketEnvelope<OfflinePacket>) {
+        val response: OfflinePacket = when(val packet = msg.content()) {
             is UnconnectedPing -> {
                 UnconnectedPong(
                     pingId = packet.time,

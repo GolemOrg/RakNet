@@ -2,12 +2,12 @@ package raknet.packet.protocol
 
 import io.netty.buffer.ByteBuf
 import raknet.packet.ConnectedPacket
-import raknet.packet.PacketType
+import raknet.packet.MessageType
 
 class ConnectedPong(
     var pingTime: Long,
     var pongTime: Long
-): ConnectedPacket(PacketType.CONNECTED_PONG.id()) {
+): ConnectedPacket(MessageType.CONNECTED_PONG.id()) {
 
     override fun encodeOrder(): Array<Any> = arrayOf(pingTime, pongTime)
 

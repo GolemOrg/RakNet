@@ -14,9 +14,9 @@ class ConnectedMessageDecoder(private val server: Server): MessageToMessageDecod
         if(!server.hasConnection(msg.sender()) || msg.content().readableBytes() < 1) return
         val buffer = msg.content()
         val id: Int = buffer.readUnsignedByte().toInt()
-        val decoded: ConnectedPacket? = when(PacketType.find(id)) {
-            PacketType.ACK -> Acknowledge.from(buffer)
-            PacketType.NACK -> NAcknowledge.from(buffer)
+        val decoded: ConnectedPacket? = when(MessageType.find(id)) {
+            MessageType.ACK -> null // TODO: Acknowledges :(
+            MessageType.NACK -> null // TODO: NAcknowledges :(
             else -> null // TODO: Datagrams :(
         }
         if(decoded != null) output.add(PacketEnvelope(decoded, msg.sender()))
