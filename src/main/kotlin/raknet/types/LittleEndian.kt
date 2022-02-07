@@ -17,6 +17,12 @@ value class UIntLE(private val value: UInt): Encodable, Decodable {
 }
 
 @JvmInline
+value class UInt24LE(private val value: UInt): Encodable, Decodable {
+    override fun encode(buffer: ByteBuf) { buffer.writeMediumLE(value.toInt()) }
+    override fun decode(buffer: ByteBuf): UInt24LE = UInt24LE(buffer.readUnsignedMediumLE().toUInt())
+}
+
+@JvmInline
 value class LongLE(private val value: Long): Encodable, Decodable {
     override fun encode(buffer: ByteBuf) { buffer.writeLongLE(value) }
     override fun decode(buffer: ByteBuf): LongLE = LongLE(buffer.readLongLE())
