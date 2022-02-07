@@ -1,6 +1,8 @@
 package raknet
 
 import io.netty.buffer.ByteBuf
+import raknet.codec.Decodable
+import raknet.codec.Encodable
 import java.net.Inet4Address
 import java.net.Inet6Address
 import java.net.InetAddress
@@ -55,7 +57,7 @@ fun Any?.decode(buffer: ByteBuf): Any? {
         is Boolean -> buffer.readBoolean()
         is String -> buffer.readString()
         is ByteArray -> buffer.readToByteArray(this.size)
-        is Codable -> this.decode(buffer)
+        is Decodable -> this.decode(buffer)
         else -> null
     }
 }
@@ -74,7 +76,7 @@ fun Any?.encode(buffer: ByteBuf) {
             buffer.writeCharSequence(this, Charsets.UTF_8)
         }
         is ByteArray -> buffer.writeBytes(this)
-        is Codable -> this.encode(buffer)
+        is Encodable -> this.encode(buffer)
         is InetSocketAddress -> {
             when (val inner: InetAddress = this.address) {
                 is Inet4Address -> {
