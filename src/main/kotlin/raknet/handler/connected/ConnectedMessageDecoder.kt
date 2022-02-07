@@ -4,8 +4,10 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.socket.DatagramPacket
 import io.netty.handler.codec.MessageToMessageDecoder
 import raknet.Server
+import raknet.enums.Flags
 import raknet.handler.MessageEnvelope
 import raknet.message.*
+import raknet.message.datagram.Datagram
 
 class ConnectedMessageDecoder(private val server: Server): MessageToMessageDecoder<DatagramPacket>() {
 
@@ -15,9 +17,15 @@ class ConnectedMessageDecoder(private val server: Server): MessageToMessageDecod
         val buffer = msg.content()
         val id: Int = buffer.readUnsignedByte().toInt()
         val decoded: OnlineMessage? = when(MessageType.find(id)) {
-            MessageType.ACK -> null // TODO: Acknowledges :(
-            MessageType.NACK -> null // TODO: NAcknowledges :(
-            else -> null // TODO: Datagrams :(
+            MessageType.ACK -> null // Acknowledge.from(buffer)
+            MessageType.NACK -> null // NAcknowledge.from(buffer)
+            else -> {
+                if(id and Flags.DATAGRAM.id() == 0) {
+                    // A datagram wasn't received
+                    return
+                }
+                Datagram.from(buffer)
+            }
         }
         if(decoded != null) output.add(MessageEnvelope(decoded, msg.sender()))
     }
