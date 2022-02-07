@@ -93,7 +93,7 @@ field is separated by the `;` character.
 | Header              | String     | MCPE (for Bedrock Edition) or MCEE (for Education Edition)      |
 | MOTD                | String     | The main message seen by the client                             |
 | Protocol Version    | Int        | The game protocol version (e.g., 475)                           |
-| Game Version        | String     | The game version (e.g., v1.18.0)                                |
+| Game Version        | String     | The game version (e.g., 1.18.0)                                |
 | Player Count        | Int        | The number of players currently online                          |
 | Max Player Count    | Int        | The maximum amount of players that can be on the server         |
 | Server GUID         | Long       | The unique identifier sent by the server                        |
