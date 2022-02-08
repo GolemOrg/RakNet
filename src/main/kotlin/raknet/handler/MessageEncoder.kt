@@ -8,6 +8,8 @@ import raknet.message.DataMessage
 class MessageEncoder<T: DataMessage>: MessageToMessageEncoder<MessageEnvelope<T>>() {
 
     override fun encode(ctx: ChannelHandlerContext, msg: MessageEnvelope<T>, out: MutableList<Any>) {
-        ctx.writeAndFlush(DatagramPacket(msg.content().prepare(), msg.sender()))
+        val buffer = msg.content().prepare()
+        ctx.writeAndFlush(DatagramPacket(buffer, msg.sender()))
+        buffer.release()
     }
 }
