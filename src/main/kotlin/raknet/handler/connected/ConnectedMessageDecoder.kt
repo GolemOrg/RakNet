@@ -24,6 +24,8 @@ class ConnectedMessageDecoder(private val server: Server): MessageToMessageDecod
                     // A datagram wasn't received
                     return
                 }
+                // Reset reader index to the beginning of the buffer so that the datagram can decode its own flags
+                buffer.resetReaderIndex()
                 Datagram.from(buffer)
             }
         }
