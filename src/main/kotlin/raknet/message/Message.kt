@@ -1,6 +1,7 @@
 package raknet.message
 
-import io.netty.buffer.ByteBuf
+import raknet.codec.Decodable
+import raknet.codec.Encodable
 
 /**
  * This is the base layer for any RakNet Packet.
@@ -12,7 +13,4 @@ import io.netty.buffer.ByteBuf
  *
  * We use this interface as a way to have a uniform way to encode & decode any data
  */
-interface Message {
-    fun encode(): ByteBuf
-    fun decode(buffer: ByteBuf)
-}
+interface Message: Encodable, Decodable
