@@ -1,7 +1,7 @@
 package raknet.message.datagram
 
 import io.netty.buffer.ByteBuf
-import raknet.codec.Encodable
+import raknet.codec.OrderedEncodable
 import raknet.encode
 import raknet.enums.Flags
 import raknet.enums.Reliability
@@ -11,7 +11,7 @@ sealed class Frame(
     val reliability: Reliability,
     val fragment: Fragment?,
     val body: ByteBuf
-): Encodable {
+): OrderedEncodable {
     class Unreliable(fragment: Fragment?, body: ByteBuf) : Frame(Reliability.UNRELIABLE, fragment, body) {
         override fun encodeOrder(): Array<Any> = arrayOf()
         override fun toString(): String = "Unreliable(fragment=$fragment, body=ByteBuf(${body.readableBytes()}))"
@@ -51,7 +51,6 @@ sealed class Frame(
         buffer.writeBytes(body)
     }
 
-    abstract fun encodeOrder(): Array<Any>
     abstract override fun toString(): String
 
     companion object {
@@ -60,6 +59,7 @@ sealed class Frame(
 
         fun from(buffer: ByteBuf): Frame {
             val flags = buffer.readUnsignedByte().toInt()
+
             val reliability = Reliability.fromRaw(flags)
             val hasFragment = flags and Flags.PACKET_PAIR.id() != 0
             val bodyLength = buffer.readUnsignedShort() shr BODY_LENGTH_SHIFT
