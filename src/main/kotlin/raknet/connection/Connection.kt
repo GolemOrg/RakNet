@@ -5,6 +5,8 @@ import io.netty.channel.nio.NioEventLoopGroup
 import raknet.Server
 import raknet.message.*
 import raknet.message.datagram.Datagram
+import raknet.message.protocol.ConnectionRequest
+import raknet.message.protocol.ConnectionRequestAccepted
 import java.net.InetSocketAddress
 import java.util.concurrent.TimeUnit
 
@@ -15,22 +17,38 @@ class Connection(
     private val mtuSize: Short,
     private val guid: Long,
 ) {
-    private val internalsHandler = InternalsHandler(this)
+    private val internalsHandler = InternalsHandler(this, context)
     private var worker: NioEventLoopGroup = NioEventLoopGroup()
 
     init {
         worker.scheduleAtFixedRate(this::tick, 0, 10, TimeUnit.MILLISECONDS)
     }
 
-    private fun tick() {}
+    private fun tick() {
+        internalsHandler.tick()
+    }
 
     fun handleInternal(packet: Acknowledge) = internalsHandler.handle(packet)
     fun handleInternal(packet: NAcknowledge) = internalsHandler.handle(packet)
     fun handleInternal(packet: Datagram) = internalsHandler.handle(packet)
 
-    private fun handle(packet: OnlineMessage) {}
+    fun handle(packet: OnlineMessage) {
+        when(packet) {
+            is ConnectionRequest -> {
+                val accepted = ConnectionRequestAccepted(
+                    clientAddress = address,
+                    systemIndex = 0,
+                    requestTime = packet.time,
+                    time = server.getUptime()
+                )
+                send(accepted, true)
+            }
+        }
+    }
 
-    private fun send(packet: OnlineMessage) {}
+    fun send(packet: OnlineMessage, immediate: Boolean = false) {
+        internalsHandler.send(packet, immediate)
+    }
 
     fun close(reason: DisconnectionReason) {
         worker.shutdownGracefully()
