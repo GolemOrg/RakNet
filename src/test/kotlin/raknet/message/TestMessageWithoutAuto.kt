@@ -1,7 +1,6 @@
 package raknet.message
 
 import io.netty.buffer.ByteBuf
-import io.netty.buffer.Unpooled
 
 class TestMessageWithoutAuto(val testLong: Long, val testString: String, val testRandom: Int): DataMessage(0xEF) {
 
@@ -9,12 +8,10 @@ class TestMessageWithoutAuto(val testLong: Long, val testString: String, val tes
         return arrayOf(testLong, testString, testRandom) // Unused as we override encode
     }
 
-    override fun encode(): ByteBuf {
-        val buffer: ByteBuf = Unpooled.buffer()
+    override fun encode(buffer: ByteBuf) {
         buffer.writeLong(testLong)
         buffer.writeShort(testString.length)
         buffer.writeCharSequence(testString, Charsets.UTF_8)
         buffer.writeInt(testRandom)
-        return buffer
     }
 }
