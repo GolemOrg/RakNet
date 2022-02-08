@@ -1,7 +1,6 @@
 package raknet.message
 
 import io.netty.buffer.ByteBuf
-import io.netty.buffer.Unpooled
 import raknet.encode
 
 class TestMessageWithAuto(

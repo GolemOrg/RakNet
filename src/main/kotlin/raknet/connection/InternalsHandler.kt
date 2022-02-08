@@ -1,6 +1,7 @@
 package raknet.connection
 
 import io.netty.channel.ChannelHandlerContext
+import io.netty.channel.socket.DatagramPacket
 import raknet.enums.Flags
 import raknet.handler.MessageEnvelope
 import raknet.message.Acknowledge
@@ -61,8 +62,21 @@ class InternalsHandler(
             datagramSequenceNumber = UInt24LE(currentDatagramSequenceNumber++),
             frames = frameQueue
         )
-        write(datagram)
+        val prepared = datagram.prepare()
         frameQueue.clear()
+
+        /**
+         * TODO: Hack! We need to find a better solution
+         *
+         * The best way to do this would be to use a method that
+         * can release the buffers inside after the write is done?
+         */
+        context.writeAndFlush(DatagramPacket(prepared, connection.address))
+        //write(datagram)
+        for(frame in datagram.frames) {
+            frame.body.release()
+        }
+
     }
 
     fun handle(datagram: Datagram) {
