@@ -2,14 +2,12 @@ package raknet.message
 
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.ByteBufAllocator
-import raknet.encode
+import raknet.codec.OrderedEncodable
 
-abstract class DataMessage(open val id: Int) : Message {
+abstract class DataMessage(open val id: Int) : Message, OrderedEncodable {
 
-    override fun encode(): ByteBuf {
-        val buffer = ByteBufAllocator.DEFAULT.ioBuffer()
-        encodeOrder().forEach { it.encode(buffer) }
-        return buffer
+    open fun encodeHeader(buffer: ByteBuf) {
+        buffer.writeByte(id)
     }
 
     /**
@@ -18,22 +16,11 @@ abstract class DataMessage(open val id: Int) : Message {
      */
     override fun decode(buffer: ByteBuf) = Unit
 
-    abstract fun encodeOrder(): Array<Any>
-
-    open fun encodeHeader(buffer: ByteBuf) {
-        buffer.writeByte(id)
-    }
-
     fun prepare(): ByteBuf {
-        val encoded = encode()
-        try {
-            val buffer = ByteBufAllocator.DEFAULT.ioBuffer()
-            encodeHeader(buffer)
-            buffer.writeBytes(encoded)
-            return buffer
-        } finally {
-            encoded.release()
-        }
+        val buffer = ByteBufAllocator.DEFAULT.ioBuffer()
+        encodeHeader(buffer)
+        encode(buffer)
+        return buffer
     }
 
     override fun toString(): String = "DataPacket(id=$id)"
