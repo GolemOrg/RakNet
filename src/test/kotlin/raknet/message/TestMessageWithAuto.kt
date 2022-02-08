@@ -12,10 +12,8 @@ class TestMessageWithAuto(
 
     override fun decode(buffer: ByteBuf) {}
 
-    override fun encode(): ByteBuf {
-        val buffer: ByteBuf = Unpooled.buffer()
+    override fun encode(buffer: ByteBuf) {
         encodeOrder().forEach { it.encode(buffer) }
-        return buffer
     }
 
     override fun encodeOrder(): Array<Any> = arrayOf(testLong, testString, testRandom)

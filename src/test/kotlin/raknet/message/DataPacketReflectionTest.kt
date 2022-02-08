@@ -3,6 +3,7 @@ package raknet.message
 import benchmark_kt.Benchmark
 import benchmark_kt.BenchmarkTarget
 import benchmark_kt.BenchmarkType
+import io.netty.buffer.Unpooled
 import kotlin.random.Random
 
 fun main(args: Array<String>) {
@@ -16,7 +17,8 @@ fun main(args: Array<String>) {
                     "Hello World",
                     value
                 )
-                packet.encode()
+                val buffer = Unpooled.buffer()
+                packet.encode(buffer)
             },
             BenchmarkTarget("TestPacketWithAuto") {
                 val value = Random.nextInt()
@@ -25,7 +27,8 @@ fun main(args: Array<String>) {
                     "Hello World",
                     value
                 )
-                packet.encode()
+                val buffer = Unpooled.buffer()
+                packet.encode(buffer)
             }
         ),
         type = BenchmarkType.Operations(1_000_000)
