@@ -54,29 +54,33 @@ class InternalsHandler(
         }
     }
 
-    fun write(datagram: Datagram) = context.writeAndFlush(MessageEnvelope(datagram, connection.address))
-
-    fun sendFrames() {
-        val datagram = Datagram(
-            flags = mutableListOf(Flags.DATAGRAM),
-            datagramSequenceNumber = UInt24LE(currentDatagramSequenceNumber++),
-            frames = frameQueue
-        )
-        val prepared = datagram.prepare()
-        frameQueue.clear()
-
+    fun write(datagram: Datagram) {
         /**
          * TODO: Hack! We need to find a better solution
          *
          * The best way to do this would be to use a method that
          * can release the buffers inside after the write is done?
+         *
+         * If possible, it'd be good to use the packet envelope
+         * for sending the datagram, but seeing as the datagram
+         * will still hold frames w/ buffers inside of them,
+         * that is not possible in our current system.
          */
+        val prepared = datagram.prepare()
         context.writeAndFlush(DatagramPacket(prepared, connection.address))
-        //write(datagram)
         for(frame in datagram.frames) {
             frame.body.release()
         }
+    }
 
+    private fun sendFrames() {
+        val datagram = Datagram(
+            flags = mutableListOf(Flags.DATAGRAM),
+            datagramSequenceNumber = UInt24LE(currentDatagramSequenceNumber++),
+            frames = frameQueue
+        )
+        write(datagram)
+        frameQueue.clear()
     }
 
     fun handle(datagram: Datagram) {
