@@ -1,16 +1,13 @@
 package raknet.connection
 
+import io.netty.buffer.ByteBuf
+import io.netty.buffer.ByteBufAllocator
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.socket.DatagramPacket
 import raknet.enums.Flags
 import raknet.handler.MessageEnvelope
-import raknet.message.Acknowledge
-import raknet.message.MessageType
-import raknet.message.NAcknowledge
-import raknet.message.OnlineMessage
-import raknet.message.datagram.Datagram
-import raknet.message.datagram.Frame
-import raknet.message.datagram.Order
+import raknet.message.*
+import raknet.message.datagram.*
 import raknet.message.protocol.ConnectedPing
 import raknet.message.protocol.ConnectionRequest
 import raknet.message.protocol.DisconnectionNotification
@@ -22,50 +19,101 @@ class InternalsHandler(
     val context: ChannelHandlerContext
 ) {
 
-    val ackQueue = mutableListOf<Acknowledge>()
-    val nakQueue = mutableListOf<NAcknowledge>()
+    val ackQueue = mutableListOf<UInt>()
+    val nackQueue = mutableListOf<UInt>()
+
+    var lastReceivedMessageTime = System.currentTimeMillis()
+    var lastReceivedDatagramSequenceNumber: UInt = 0u
 
     var currentDatagramSequenceNumber: UInt = 0u
     var currentMessageReliableIndex: UInt = 0u
     var currentOrderIndex: UInt = 0u
+    val currentFragmentIndex: Short = 0.toShort()
 
-    val frameQueue = mutableListOf<Frame>()
+    val sendQueue: MutableList<Frame> = mutableListOf()
+    val resendQueue: MutableMap<UInt24LE, Frame> = mutableMapOf()
+    val pendingFrames: MutableMap<Short, FrameBuilder> = mutableMapOf()
 
     fun tick() {
+        if(ackQueue.size > 0) dispatchAckQueue()
+        if(nackQueue.size > 0) dispatchNAckQueue()
+        if(sendQueue.size > 0) dispatchFrameQueue()
 
-        if(frameQueue.size > 0) {
-            sendFrames()
+        if(System.currentTimeMillis() - lastReceivedMessageTime > TimeComponent.TIMEOUT.toLong()) {
+            connection.close(DisconnectionReason.Timeout)
         }
     }
 
-    fun send(packet: OnlineMessage, immediate: Boolean = false) {
-        frameQueue.add(Frame.ReliableOrdered(
+    private fun createDefaultFrame(buffer: ByteBuf, fragment: Fragment? = null): Frame {
+        return Frame.ReliableOrdered(
             messageIndex = UInt24LE(currentMessageReliableIndex++),
             order = Order(
                 index = UInt24LE(currentOrderIndex++),
                 channel = 0
             ),
-            fragment = null,
-            body = packet.prepare()
-        ))
+            fragment = fragment,
+            body = buffer
+        )
+    }
 
+    fun send(packet: OnlineMessage, immediate: Boolean = false) {
+        val buffer = packet.prepare()
+        if(buffer.readableBytes() > connection.mtuSize) {
+            val buffers = splitBuffer(buffer)
+            buffers.forEachIndexed { index, current ->
+                val frame = createDefaultFrame(
+                    buffer = current,
+                    fragment = Fragment(
+                        count = buffers.size,
+                        fragmentId = currentFragmentIndex,
+                        index = index
+                    )
+                )
+                addFrameToQueue(frame)
+            }
+            buffer.release()
+        } else {
+            val frame = createDefaultFrame(buffer)
+            println(frame)
+            addFrameToQueue(frame)
+        }
+        // TODO: Priority system rather than immediate/non-immediate
         if(immediate) {
-            sendFrames()
+            dispatchFrameQueue()
         }
     }
 
+    fun sendInternal(packet: OnlineMessage) {
+        val prepared = packet.prepare()
+        try {
+            val datagram = Datagram(
+                flags = mutableListOf(Flags.DATAGRAM),
+                datagramSequenceNumber = UInt24LE(currentDatagramSequenceNumber++),
+                frames = mutableListOf(
+                    Frame.Unreliable(
+                        body = prepared,
+                        fragment = null
+                    )
+                )
+            )
+            context.writeAndFlush(MessageEnvelope(datagram, connection.address))
+        } finally {
+            prepared.release()
+        }
+    }
+
+    /**
+     * TODO: Hack! We need to find a better solution
+     *
+     * The best way to do this would be to use a method that
+     * can release the buffers inside after the write is done?
+     *
+     * If possible, it'd be good to use the packet envelope
+     * for sending the datagram, but seeing as the datagram
+     * will still hold frames w/ buffers inside of them,
+     * that is not possible in our current system.
+     */
     fun write(datagram: Datagram) {
-        /**
-         * TODO: Hack! We need to find a better solution
-         *
-         * The best way to do this would be to use a method that
-         * can release the buffers inside after the write is done?
-         *
-         * If possible, it'd be good to use the packet envelope
-         * for sending the datagram, but seeing as the datagram
-         * will still hold frames w/ buffers inside of them,
-         * that is not possible in our current system.
-         */
         val prepared = datagram.prepare()
         context.writeAndFlush(DatagramPacket(prepared, connection.address))
         for(frame in datagram.frames) {
@@ -73,17 +121,51 @@ class InternalsHandler(
         }
     }
 
-    private fun sendFrames() {
+    fun write(acknowledge: Acknowledge) {
+        context.writeAndFlush(MessageEnvelope(acknowledge, connection.address))
+    }
+
+    fun write(nacknowledge: NAcknowledge) {
+        context.writeAndFlush(MessageEnvelope(nacknowledge, connection.address))
+    }
+
+    private fun dispatchAckQueue() {
+        val acknowledge = Acknowledge.fromQueue(ackQueue)
+        write(acknowledge)
+        ackQueue.clear()
+    }
+
+    private fun dispatchNAckQueue() {
+        write(NAcknowledge.fromQueue(nackQueue))
+        nackQueue.clear()
+    }
+
+    private fun addFrameToQueue(frame: Frame) {
+        when(frame) {
+            is Frame.Reliable -> {
+                resendQueue[frame.messageIndex] = frame
+            }
+            is Frame.ReliableOrdered -> {
+                resendQueue[frame.messageIndex] = frame
+                // Ensure ordering
+            }
+            else -> {}
+        }
+        sendQueue.add(frame)
+    }
+
+    private fun dispatchFrameQueue() {
         val datagram = Datagram(
             flags = mutableListOf(Flags.DATAGRAM),
             datagramSequenceNumber = UInt24LE(currentDatagramSequenceNumber++),
-            frames = frameQueue
+            frames = sendQueue
         )
         write(datagram)
-        frameQueue.clear()
+        sendQueue.clear()
     }
 
     fun handle(datagram: Datagram) {
+        ackQueue.add(datagram.datagramSequenceNumber.toUInt())
         for(frame in datagram.frames) {
             val body = frame.body
             val message: OnlineMessage? = when(MessageType.find(body.readUnsignedByte().toInt())) {
@@ -91,7 +173,7 @@ class InternalsHandler(
                 MessageType.CONNECTION_REQUEST -> ConnectionRequest.from(body)
                 MessageType.DISCONNECTION_NOTIFICATION -> DisconnectionNotification()
                 MessageType.NEW_INCOMING_CONNECTION -> NewIncomingConnection.from(body)
-                else -> null // UserMessage (pass to user)
+                else -> buildUserMessage(frame)
             }
             body.release()
             if(message != null) {
@@ -101,10 +183,50 @@ class InternalsHandler(
     }
 
     fun handle(acknowledge: Acknowledge) {
-
+        // Release any packets that are not needed anymore
+        acknowledge.records.forEach { record ->
+            record.asList().forEach { index -> resendQueue.remove(index) }
+        }
     }
 
     fun handle(nAcknowledge: NAcknowledge) {
+        // Queue up any packets that need to be resent
+        nAcknowledge.records.forEach { record ->
+            record.asList().forEach { index ->
+                resendQueue[index]?.let {
+                    addFrameToQueue(it)
+                }
+            }
+        }
+    }
 
+    private fun splitBuffer(buffer: ByteBuf): MutableList<ByteBuf> {
+        var current = ByteBufAllocator.DEFAULT.ioBuffer()
+        val splitBuffers = mutableListOf<ByteBuf>()
+        while(buffer.isReadable) {
+            if(current.readableBytes() + buffer.readableBytes() > connection.mtuSize) {
+                splitBuffers.add(current)
+                current.slice()
+                current = ByteBufAllocator.DEFAULT.ioBuffer()
+            }
+        }
+        splitBuffers.add(current)
+        return splitBuffers
+    }
+
+    private fun buildUserMessage(frame: Frame): UserMessage? {
+        val body = frame.body
+        if(frame.fragment != null) {
+            val fragment = frame.fragment
+            val builder = pendingFrames.getOrPut(fragment.fragmentId) { FrameBuilder(fragment.count) }
+            builder.add(frame)
+            if(builder.complete()) {
+                val buffer = builder.build()
+                pendingFrames.remove(fragment.fragmentId)
+                return UserMessage(buffer.readUnsignedByte().toInt(), buffer)
+            }
+            return null
+        }
+        return UserMessage(body.readUnsignedByte().toInt(), body.readBytes(body.readableBytes()))
     }
 }
