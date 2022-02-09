@@ -6,6 +6,8 @@ import raknet.CURRENT_PROTOCOL_VERSION
 import raknet.types.Magic
 import raknet.Server
 import raknet.connection.Connection
+import raknet.connection.MAX_MTU
+import raknet.connection.MIN_MTU
 import raknet.handler.MessageEnvelope
 import raknet.message.OfflineMessage
 import raknet.message.protocol.*
@@ -17,6 +19,10 @@ class UnconnectedMessageHandler(private val server: Server): SimpleChannelInboun
     override fun channelRead0(ctx: ChannelHandlerContext, msg: MessageEnvelope<OfflineMessage>) {
         val response: OfflineMessage = when(val packet = msg.content()) {
             is UnconnectedPing -> {
+                if(server.hasConnection(msg.sender())) {
+                    println("Received unconnected ping from sender after establishing connection")
+                    return
+                }
                 UnconnectedPong(
                     pingId = packet.time,
                     magic = Magic,
@@ -42,18 +48,23 @@ class UnconnectedMessageHandler(private val server: Server): SimpleChannelInboun
                 }
             }
             is OpenConnectionRequest2 -> {
+                var mtuSize = packet.mtuSize
+                if(mtuSize < MIN_MTU) {
+                    // Do not attempt to respond if the MTU is this small
+                    return
+                }
+                if(mtuSize > MAX_MTU) mtuSize = MAX_MTU
                 server.addConnection(Connection(
                     address = msg.sender(),
                     server = server,
                     context = ctx,
-                    mtuSize = packet.mtuSize,
+                    mtuSize = mtuSize,
                     guid = packet.clientGuid
                 ))
-
                 OpenConnectionReply2(
                     magic = Magic,
                     serverGuid = server.guid.mostSignificantBits,
-                    mtuSize = packet.mtuSize,
+                    mtuSize = mtuSize,
                     clientAddress = packet.serverAddress,
                     encryptionEnabled = false,
                 )
