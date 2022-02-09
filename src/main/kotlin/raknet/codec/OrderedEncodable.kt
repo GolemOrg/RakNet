@@ -6,5 +6,5 @@ import raknet.encode
 interface OrderedEncodable: Encodable {
     fun encodeOrder(): Array<Any>
 
-    override fun encode(buffer: ByteBuf) { encodeOrder().forEach { it.encode(buffer) } }
+    override fun encode(buffer: ByteBuf) { encodeOrder().encode(buffer) }
 }
