@@ -46,8 +46,8 @@ sealed class Frame(
         var flags = reliability.toRaw()
         if(fragment != null) flags = flags or Flags.PACKET_PAIR.id()
         buffer.writeByte(flags)
-        buffer.writeShort(body.readableBytes() + 7 shl BODY_LENGTH_SHIFT)
-        encodeOrder().forEach { it.encode(buffer) }
+        buffer.writeShort(body.readableBytes() shl BODY_LENGTH_SHIFT)
+        encodeOrder().encode(buffer)
         buffer.writeBytes(body)
     }
 
@@ -59,10 +59,9 @@ sealed class Frame(
 
         fun from(buffer: ByteBuf): Frame {
             val flags = buffer.readUnsignedByte().toInt()
-
             val reliability = Reliability.fromRaw(flags)
             val hasFragment = flags and Flags.PACKET_PAIR.id() != 0
-            val bodyLength = buffer.readUnsignedShort() shr BODY_LENGTH_SHIFT
+            val bodyLength = buffer.readUnsignedShort() + 7 shr BODY_LENGTH_SHIFT
             return when(reliability) {
                 Reliability.UNRELIABLE -> Unreliable(
                     fragment = if(hasFragment) Fragment(buffer.readInt(), buffer.readShort(), buffer.readInt()) else null,
