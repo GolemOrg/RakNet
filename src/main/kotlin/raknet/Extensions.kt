@@ -95,7 +95,7 @@ fun Any?.encode(buffer: ByteBuf) {
             }
         }
         is Array<*> -> this.forEach { it.encode(buffer) }
-        is ArrayList<*> -> this.forEach { it.encode(buffer) }
+        is List<*> -> this.forEach { it.encode(buffer) }
         else -> {
             val type = this?.javaClass!!.simpleName ?: "null"
             throw IllegalArgumentException("Encountered unknown type: $type when encoding value to buffer")
