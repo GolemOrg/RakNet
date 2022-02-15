@@ -7,10 +7,7 @@ import raknet.enums.Flags
 import raknet.handler.MessageEnvelope
 import raknet.message.*
 import raknet.message.datagram.*
-import raknet.message.protocol.ConnectedPing
-import raknet.message.protocol.ConnectionRequest
-import raknet.message.protocol.DisconnectionNotification
-import raknet.message.protocol.NewIncomingConnection
+import raknet.message.protocol.*
 import raknet.split
 import raknet.types.UInt24LE
 
@@ -35,6 +32,10 @@ class InternalsHandler(
     private val pendingFrames: MutableMap<Short, FrameBuilder> = mutableMapOf()
 
     fun tick() {
+        if(connection.state === ConnectionState.DISCONNECTED) {
+            return
+        }
+
         if(ackQueue.size > 0) dispatchAckQueue()
         if(nackQueue.size > 0) dispatchNAckQueue()
         if(sendQueue.size > 0) dispatchFrameQueue()
@@ -165,10 +166,13 @@ class InternalsHandler(
 
     fun handle(datagram: Datagram) {
         ackQueue.add(datagram.datagramSequenceNumber.toUInt())
+        // TODO: NAKs
         for(frame in datagram.frames) {
             val body = frame.body
-            val message: OnlineMessage? = when(MessageType.find(body.readUnsignedByte().toInt())) {
+            val id = body.readUnsignedByte().toInt()
+            val message: OnlineMessage? = when(MessageType.find(id)) {
                 MessageType.CONNECTED_PING -> ConnectedPing.from(body)
+                MessageType.CONNECTED_PONG -> ConnectedPong.from(body)
                 MessageType.CONNECTION_REQUEST -> ConnectionRequest.from(body)
                 MessageType.DISCONNECTION_NOTIFICATION -> DisconnectionNotification()
                 MessageType.NEW_INCOMING_CONNECTION -> NewIncomingConnection.from(body)
@@ -206,7 +210,9 @@ class InternalsHandler(
         val body = frame.body
         if(frame.fragment != null) {
             val fragment = frame.fragment
-            val builder = pendingFrames.getOrPut(fragment.fragmentId) { FrameBuilder(fragment.count) }
+            val builder = pendingFrames.getOrPut(fragment.fragmentId) {
+                FrameBuilder(fragment.count)
+            }
             builder.add(frame)
             if(builder.complete()) {
                 val buffer = builder.build()

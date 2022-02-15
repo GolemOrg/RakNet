@@ -1,5 +1,6 @@
 package raknet.connection
 
+import events.EventBus
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.nio.NioEventLoopGroup
 import raknet.Server
@@ -12,13 +13,12 @@ import java.util.concurrent.TimeUnit
 const val MIN_MTU: Short = 576
 const val MAX_MTU: Short = 1492
 
-enum class ConnectionState {
-    INITIALIZING, CONNECTING,
-    CONNECTED, DISCONNECTED
-}
+enum class ConnectionState { INITIALIZING, CONNECTING, CONNECTED, DISCONNECTED }
 
 enum class TimeComponent(private val millis: Long) {
-    UPDATE(10), TIMEOUT(30_000L);
+    UPDATE(10),
+    PING(5_000),
+    TIMEOUT(30_000);
 
     fun toLong(): Long = millis
 }
@@ -26,13 +26,16 @@ enum class TimeComponent(private val millis: Long) {
 class Connection(
     val address: InetSocketAddress,
     val server: Server,
-    private val context: ChannelHandlerContext,
+    context: ChannelHandlerContext,
     val mtuSize: Short,
     val guid: Long,
 ) {
-    private var connectionState: ConnectionState = ConnectionState.INITIALIZING
+    var state: ConnectionState = ConnectionState.INITIALIZING
+
     private val internalsHandler = InternalsHandler(this, context)
     private var worker: NioEventLoopGroup = NioEventLoopGroup()
+
+    private val eventBus = EventBus<ConnectionEvent>()
 
     init {
         worker.scheduleAtFixedRate(this::tick, 0, TimeComponent.UPDATE.toLong(), TimeUnit.MILLISECONDS)
@@ -49,7 +52,7 @@ class Connection(
     fun handle(packet: OnlineMessage) {
         when(packet) {
             is ConnectionRequest -> {
-                connectionState = ConnectionState.CONNECTING
+                state = ConnectionState.CONNECTING
                 internalsHandler.sendInternal(ConnectionRequestAccepted(
                     clientAddress = this.address,
                     systemIndex = 0,
@@ -58,31 +61,43 @@ class Connection(
                 ))
             }
             is NewIncomingConnection -> {
-                connectionState = ConnectionState.CONNECTED
+                worker.scheduleAtFixedRate(this::ping, TimeComponent.PING.toLong(), TimeComponent.PING.toLong(), TimeUnit.MILLISECONDS)
+                state = ConnectionState.CONNECTED
+                eventBus.dispatch(ConnectionEvent.Connected)
             }
-            is ConnectedPing -> {
-                internalsHandler.sendInternal(ConnectedPong(
-                    pingTime = packet.time,
-                    pongTime = server.getUptime()
-                ))
+            is ConnectedPing -> internalsHandler.sendInternal(ConnectedPong(
+                pingTime = packet.time,
+                pongTime = server.getUptime()
+            ))
+            is ConnectedPong -> {
+                // Compute latency
+                val latency = server.getUptime() - packet.pingTime
+                eventBus.dispatch(ConnectionEvent.LatencyUpdated(latency))
             }
+            is DisconnectionNotification -> close(DisconnectionReason.ClientRequested)
             is UserMessage -> {
-                // Do stuff & then release the buffer :)
+                eventBus.dispatch(ConnectionEvent.Received(packet))
                 packet.buffer.release()
             }
         }
     }
 
-    fun send(packet: OnlineMessage, immediate: Boolean = false) {
-        internalsHandler.send(packet, immediate)
+    fun send(packet: OnlineMessage, immediate: Boolean = false) = internalsHandler.send(packet, immediate)
+
+    fun ping() {
+        if(state !== ConnectionState.CONNECTED) {
+            return
+        }
+        send(ConnectedPing(time = server.getUptime()), true)
     }
 
+    fun getEventBus() = eventBus
+
     fun close(reason: DisconnectionReason) {
-        // TODO: Some type of logging system
         worker.shutdownGracefully()
-        context.close()
         server.removeConnection(this)
-        connectionState = ConnectionState.DISCONNECTED
+        eventBus.dispatch(ConnectionEvent.Disconnected(reason))
+        state = ConnectionState.DISCONNECTED
     }
 
 }

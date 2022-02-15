@@ -14,6 +14,7 @@ repositories {
 dependencies {
     implementation("io.netty:netty-all:4.1.72.Final")
     implementation("com.esotericsoftware.reflectasm:reflectasm:1.09")
+    implementation("com.github.GolemOrg:events-kt:1.0.1")
     testImplementation("com.github.GolemOrg:benchmark-kt:1.0.3")
     testImplementation("org.jetbrains.kotlin:kotlin-test:1.6.0")
 }
