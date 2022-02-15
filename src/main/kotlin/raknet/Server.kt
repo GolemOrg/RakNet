@@ -23,7 +23,8 @@ const val CURRENT_PROTOCOL_VERSION: Byte = 10
 
 class Server(
     val port: Int = 19132,
-    val guid: UUID = UUID.randomUUID()
+    val guid: UUID = UUID.randomUUID(),
+    var name: String = ""
 ) {
     init { ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.PARANOID) }
 
@@ -65,7 +66,6 @@ class Server(
         connections.values.forEach { it.close(DisconnectionReason.ServerClosed) }
         group.shutdownGracefully()
     }
-
 
     fun getUptime(): Long = System.currentTimeMillis() - startTime
 

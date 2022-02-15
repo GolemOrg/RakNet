@@ -20,7 +20,6 @@ class UnconnectedMessageHandler(private val server: Server): SimpleChannelInboun
         val response: OfflineMessage = when(val packet = msg.content()) {
             is UnconnectedPing -> {
                 if(server.hasConnection(msg.sender())) {
-                    println("Received unconnected ping from sender after establishing connection")
                     return
                 }
                 UnconnectedPong(
@@ -28,7 +27,7 @@ class UnconnectedMessageHandler(private val server: Server): SimpleChannelInboun
                     magic = Magic,
                     guid = server.guid.mostSignificantBits,
                     // TODO: Server name
-                    serverName = "MCPE;Golem Server;475;1.18.0;0;100;${server.guid.mostSignificantBits};Golem;Creative;1;19132;19132"
+                    serverName = server.name,
                 )
             }
             is OpenConnectionRequest1 -> {
