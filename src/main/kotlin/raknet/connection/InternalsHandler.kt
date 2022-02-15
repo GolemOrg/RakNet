@@ -12,6 +12,7 @@ import raknet.message.protocol.ConnectedPing
 import raknet.message.protocol.ConnectionRequest
 import raknet.message.protocol.DisconnectionNotification
 import raknet.message.protocol.NewIncomingConnection
+import raknet.split
 import raknet.types.UInt24LE
 
 class InternalsHandler(
@@ -59,7 +60,7 @@ class InternalsHandler(
     fun send(packet: OnlineMessage, immediate: Boolean = false) {
         val buffer = packet.prepare()
         if(buffer.readableBytes() > connection.mtuSize) {
-            val buffers = splitBuffer(buffer)
+            val buffers = buffer.split(connection.mtuSize.toInt())
             buffers.forEachIndexed { index, current ->
                 val frame = createDefaultFrame(
                     buffer = current,
@@ -198,20 +199,6 @@ class InternalsHandler(
                 }
             }
         }
-    }
-
-    private fun splitBuffer(buffer: ByteBuf): MutableList<ByteBuf> {
-        var current = ByteBufAllocator.DEFAULT.ioBuffer()
-        val splitBuffers = mutableListOf<ByteBuf>()
-        while(buffer.isReadable) {
-            if(current.readableBytes() + buffer.readableBytes() > connection.mtuSize) {
-                splitBuffers.add(current)
-                current.slice()
-                current = ByteBufAllocator.DEFAULT.ioBuffer()
-            }
-        }
-        splitBuffers.add(current)
-        return splitBuffers
     }
 
     private fun buildUserMessage(frame: Frame): UserMessage? {
