@@ -1,6 +1,7 @@
 package raknet
 
 import io.netty.buffer.ByteBuf
+import io.netty.buffer.ByteBufAllocator
 import raknet.codec.Decodable
 import raknet.codec.Encodable
 import java.net.Inet4Address
@@ -36,6 +37,19 @@ fun ByteBuf.readToByteArray(length: Int): ByteArray {
 }
 fun ByteBuf.readString(): String = readCharSequence(readUnsignedShort(), Charsets.UTF_8).toString()
 
+fun ByteBuf.split(maxSize: Int): MutableList<ByteBuf> {
+    var current = ByteBufAllocator.DEFAULT.ioBuffer()
+    val splitBuffers = mutableListOf<ByteBuf>()
+    while(this.isReadable) {
+        if(current.readableBytes() + this.readableBytes() > maxSize) {
+            splitBuffers.add(current)
+            current.slice()
+            current = ByteBufAllocator.DEFAULT.ioBuffer()
+        }
+    }
+    splitBuffers.add(current)
+    return splitBuffers
+}
 
 fun ByteArray.flip(): ByteArray {
     val result = ByteArray(this.size)
