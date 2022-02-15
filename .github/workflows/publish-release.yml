@@ -18,6 +18,9 @@ jobs:
           distribution: 'adopt'
           java-version: 13
 
+      - name: Give permissions to gradlew
+        run: chmod +x gradlew
+
       - name: Setup build cache
         uses: actions/cache@v2.1.6
         with:
@@ -25,9 +28,6 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle.kts') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
-
-      - name: Give permissions to gradlew
-        run: chmod +x gradlew
 
       - name: Publish artifact
         env:
