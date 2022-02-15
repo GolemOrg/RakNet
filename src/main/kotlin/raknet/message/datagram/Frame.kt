@@ -8,7 +8,7 @@ import raknet.enums.Reliability
 import raknet.types.UInt24LE
 
 sealed class Frame(
-    val reliability: Reliability,
+    private val reliability: Reliability,
     val fragment: Fragment?,
     val body: ByteBuf
 ): OrderedEncodable {

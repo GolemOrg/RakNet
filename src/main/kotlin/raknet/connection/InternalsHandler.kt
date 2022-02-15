@@ -1,7 +1,6 @@
 package raknet.connection
 
 import io.netty.buffer.ByteBuf
-import io.netty.buffer.ByteBufAllocator
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.socket.DatagramPacket
 import raknet.enums.Flags
@@ -16,12 +15,12 @@ import raknet.split
 import raknet.types.UInt24LE
 
 class InternalsHandler(
-    val connection: Connection,
-    val context: ChannelHandlerContext
+    private val connection: Connection,
+    private val context: ChannelHandlerContext
 ) {
 
-    val ackQueue = mutableListOf<UInt>()
-    val nackQueue = mutableListOf<UInt>()
+    private val ackQueue = mutableListOf<UInt>()
+    private val nackQueue = mutableListOf<UInt>()
 
     var lastReceivedMessageTime = System.currentTimeMillis()
     var lastReceivedDatagramSequenceNumber: UInt = 0u
@@ -29,11 +28,11 @@ class InternalsHandler(
     var currentDatagramSequenceNumber: UInt = 0u
     var currentMessageReliableIndex: UInt = 0u
     var currentOrderIndex: UInt = 0u
-    val currentFragmentIndex: Short = 0.toShort()
+    private val currentFragmentIndex: Short = 0.toShort()
 
-    val sendQueue: MutableList<Frame> = mutableListOf()
-    val resendQueue: MutableMap<UInt24LE, Frame> = mutableMapOf()
-    val pendingFrames: MutableMap<Short, FrameBuilder> = mutableMapOf()
+    private val sendQueue: MutableList<Frame> = mutableListOf()
+    private val resendQueue: MutableMap<UInt24LE, Frame> = mutableMapOf()
+    private val pendingFrames: MutableMap<Short, FrameBuilder> = mutableMapOf()
 
     fun tick() {
         if(ackQueue.size > 0) dispatchAckQueue()
@@ -75,7 +74,6 @@ class InternalsHandler(
             buffer.release()
         } else {
             val frame = createDefaultFrame(buffer)
-            println(frame)
             addFrameToQueue(frame)
         }
         // TODO: Priority system rather than immediate/non-immediate
