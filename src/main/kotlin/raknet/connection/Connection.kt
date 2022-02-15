@@ -81,6 +81,7 @@ class Connection(
         // TODO: Some type of logging system
         worker.shutdownGracefully()
         context.close()
+        server.removeConnection(this)
         connectionState = ConnectionState.DISCONNECTED
     }
 

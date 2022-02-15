@@ -67,7 +67,7 @@ class Server(
     }
 
 
-    fun getUptime() = System.currentTimeMillis() - startTime
+    fun getUptime(): Long = System.currentTimeMillis() - startTime
 
     fun addConnection(connection: Connection) {
         connections[connection.address] = connection
@@ -79,7 +79,7 @@ class Server(
 
     fun getConnections(): List<Connection> = connections.values.toList()
 
-    fun closeConnection(address: InetSocketAddress) = connections.remove(address)
-    fun closeConnection(connection: Connection) = connections.remove(connection.address)
+    fun removeConnection(address: InetSocketAddress) = connections.remove(address)
+    fun removeConnection(connection: Connection) = connections.remove(connection.address)
 
 }
