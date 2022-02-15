@@ -1,6 +1,8 @@
 package raknet
 
+import events.EventBus
 import io.netty.bootstrap.Bootstrap
+import io.netty.channel.ChannelFuture
 import io.netty.channel.ChannelInitializer
 import io.netty.channel.ChannelOption
 import io.netty.channel.nio.NioEventLoopGroup
@@ -32,44 +34,43 @@ class Server(
     private val startTime: Long = System.currentTimeMillis()
     private val connections: HashMap<InetSocketAddress, Connection> = HashMap()
 
-    fun start() {
-        try {
-            val bootstrap = Bootstrap()
-                .channel(NioDatagramChannel::class.java)
-                .group(group)
-                .option(ChannelOption.SO_REUSEADDR, true)
-                .handler(object: ChannelInitializer<NioDatagramChannel>() {
-                    override fun initChannel(channel: NioDatagramChannel) {
-                        channel.pipeline().addLast(
-                            // Decoders
-                            UnconnectedMessageDecoder(),
-                            ConnectedMessageDecoder(this@Server),
-                            // Encoders
-                            MessageEncoder<OfflineMessage>(),
-                            MessageEncoder<OnlineMessage>(),
-                            // Handlers
-                            UnconnectedMessageHandler(this@Server),
-                            ConnectedMessageHandler(this@Server),
-                        )
-                    }
-                })
-            // Bind the server to the port.
-            val future = bootstrap.bind(port).sync()
-            // Keep the server alive until the socket is closed.
-            future.channel().closeFuture().sync()
-        } finally {
-            group.shutdownGracefully()
-        }
-    }
+    private lateinit var future: ChannelFuture
 
-    fun shutdown() {
-        connections.values.forEach { it.close(DisconnectionReason.ServerClosed) }
-        group.shutdownGracefully()
+    private val eventBus = EventBus<ServerEvent>()
+
+
+    fun start(): ChannelFuture {
+        val bootstrap = Bootstrap()
+            .channel(NioDatagramChannel::class.java)
+            .group(group)
+            .option(ChannelOption.SO_REUSEADDR, true)
+            .handler(object: ChannelInitializer<NioDatagramChannel>() {
+                override fun initChannel(channel: NioDatagramChannel) {
+                    channel.pipeline().addLast(
+                        // Decoders
+                        UnconnectedMessageDecoder(),
+                        ConnectedMessageDecoder(this@Server),
+                        // Encoders
+                        MessageEncoder<OfflineMessage>(),
+                        MessageEncoder<OnlineMessage>(),
+                        // Handlers
+                        UnconnectedMessageHandler(this@Server),
+                        ConnectedMessageHandler(this@Server),
+                    )
+                }
+            })
+        // Bind the server to the port.
+        val future = bootstrap.bind(port).sync()
+        // Keep the server alive until the socket is closed.
+        this.future = future.channel().closeFuture()
+        eventBus.dispatch(ServerEvent.Start)
+        return this.future
     }
 
     fun getUptime(): Long = System.currentTimeMillis() - startTime
 
     fun addConnection(connection: Connection) {
+        eventBus.dispatch(ServerEvent.NewConnection(connection))
         connections[connection.address] = connection
     }
 
@@ -79,7 +80,21 @@ class Server(
 
     fun getConnections(): List<Connection> = connections.values.toList()
 
-    fun removeConnection(address: InetSocketAddress) = connections.remove(address)
-    fun removeConnection(connection: Connection) = connections.remove(connection.address)
+    fun removeConnection(address: InetSocketAddress) {
+        connections.remove(address)
+    }
 
+    fun removeConnection(connection: Connection) {
+        connections.remove(connection.address)
+    }
+
+    fun getEventBus(): EventBus<ServerEvent> = eventBus
+
+    fun isAlive(): Boolean = future.channel().isOpen
+
+    fun shutdown() {
+        eventBus.dispatch(ServerEvent.Shutdown)
+        getConnections().forEach { it.close(DisconnectionReason.ServerClosed) }
+        group.shutdownGracefully()
+    }
 }
