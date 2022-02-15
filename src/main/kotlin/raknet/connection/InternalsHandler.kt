@@ -192,8 +192,11 @@ class InternalsHandler(
         // Queue up any packets that need to be resent
         nAcknowledge.records.forEach { record ->
             record.asList().forEach { index ->
-                resendQueue[index]?.let {
-                    addFrameToQueue(it)
+                val frame = resendQueue[index]
+                if(frame != null) {
+                    sendQueue.add(frame)
+                } else {
+                    throw IllegalStateException("Frame not found in resend queue")
                 }
             }
         }
