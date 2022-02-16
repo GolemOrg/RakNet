@@ -1,8 +1,8 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.6.0"
+    kotlin("multiplatform") version "1.5.31"
     `maven-publish`
+    java
 }
 
 repositories {
@@ -11,20 +11,31 @@ repositories {
         url = uri("https://jitpack.io")
     }
 }
-dependencies {
-    implementation("io.netty:netty-all:4.1.72.Final")
-    implementation("com.esotericsoftware.reflectasm:reflectasm:1.09")
-    implementation("com.github.GolemOrg:events-kt:1.0.1")
-    testImplementation("com.github.GolemOrg:benchmark-kt:1.0.3")
-    testImplementation("org.jetbrains.kotlin:kotlin-test:1.6.0")
-}
 
-tasks.test {
-    useJUnitPlatform()
-}
-
-tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "13"
+kotlin {
+    jvm {
+        compilations.all {
+            kotlinOptions.jvmTarget = "11"
+        }
+        testRuns["test"].executionTask.configure {
+            useJUnit()
+        }
+    }
+    sourceSets {
+        val jvmMain by getting {
+            dependencies {
+                implementation("io.netty:netty-all:4.1.72.Final")
+                implementation("com.esotericsoftware.reflectasm:reflectasm:1.09")
+                implementation("com.github.GolemOrg:events-kt:1.0.2")
+            }
+        }
+        val jvmTest by getting {
+            dependencies {
+                implementation(kotlin("test"))
+                implementation("com.github.GolemOrg:benchmark-kt:1.0.4")
+            }
+        }
+    }
 }
 
 publishing {
@@ -34,7 +45,6 @@ publishing {
             // Include any other artifacts here, like javadocs
         }
     }
-
     repositories {
         maven {
             name = "GitHubPackages"
