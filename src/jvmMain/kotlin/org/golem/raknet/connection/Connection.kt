@@ -32,7 +32,7 @@ class Connection(
 ) {
     private val internalsHandler = InternalsHandler(this, context)
     private val worker: NioEventLoopGroup = NioEventLoopGroup()
-    private val eventBus = EventBus<ConnectionEvent>()
+    val eventBus = EventBus<ConnectionEvent>()
 
     var state: ConnectionState = ConnectionState.INITIALIZING
         private set

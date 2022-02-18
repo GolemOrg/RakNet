@@ -24,7 +24,7 @@ class PersonalConnection(
 ) {
 
     init {
-        connection.getEventBus().listen(this) {
+        connection.eventBus.listen(this) {
             when(it) {
                 is ConnectionEvent.Connected -> this.handleConnect()
                 is ConnectionEvent.Disconnected -> this.handleDisconnect()
@@ -46,7 +46,7 @@ class PersonalConnection(
 
     private fun handleDisconnect() {
         log("Client disconnected")
-        connection.getEventBus().remove(this)
+        connection.eventBus.remove(this)
     }
 
     fun log(message: String, level: String = "INFO") {
