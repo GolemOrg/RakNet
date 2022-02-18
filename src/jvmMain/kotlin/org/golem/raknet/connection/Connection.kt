@@ -39,6 +39,9 @@ class Connection(
     var latency: Long = 0
         private set
 
+    val isConnected: Boolean
+        get() = state != ConnectionState.DISCONNECTED
+
 
     init {
         worker.scheduleAtFixedRate(this::tick, 0, TimeComponent.UPDATE.toLong(), TimeUnit.MILLISECONDS)
@@ -88,9 +91,7 @@ class Connection(
     fun send(packet: OnlineMessage, immediate: Boolean = false) = internalsHandler.send(packet, immediate)
 
     fun ping() {
-        if(state !== ConnectionState.CONNECTED) {
-            return
-        }
+        if(!isConnected) return
         send(ConnectedPing(time = server.getUptime()), true)
     }
 
