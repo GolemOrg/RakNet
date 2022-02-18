@@ -30,12 +30,15 @@ class Connection(
     val mtuSize: Short,
     val guid: Long,
 ) {
-    var state: ConnectionState = ConnectionState.INITIALIZING
-
     private val internalsHandler = InternalsHandler(this, context)
-    private var worker: NioEventLoopGroup = NioEventLoopGroup()
-
+    private val worker: NioEventLoopGroup = NioEventLoopGroup()
     private val eventBus = EventBus<ConnectionEvent>()
+
+    var state: ConnectionState = ConnectionState.INITIALIZING
+        private set
+    var latency: Long = 0
+        private set
+
 
     init {
         worker.scheduleAtFixedRate(this::tick, 0, TimeComponent.UPDATE.toLong(), TimeUnit.MILLISECONDS)
@@ -71,7 +74,7 @@ class Connection(
             ))
             is ConnectedPong -> {
                 // Compute latency
-                val latency = server.getUptime() - packet.pingTime
+                latency = server.getUptime() - packet.pingTime
                 eventBus.dispatch(ConnectionEvent.LatencyUpdated(latency))
             }
             is DisconnectionNotification -> close(DisconnectionReason.ClientRequested)
@@ -90,8 +93,6 @@ class Connection(
         }
         send(ConnectedPing(time = server.getUptime()), true)
     }
-
-    fun getEventBus() = eventBus
 
     fun close(reason: DisconnectionReason) {
         worker.shutdownGracefully()
