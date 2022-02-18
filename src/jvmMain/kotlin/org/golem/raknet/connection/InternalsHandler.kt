@@ -179,7 +179,7 @@ class InternalsHandler(
                 else -> buildUserMessage(frame)
             }
             body.release()
-            if(message != null) {
+            if(message != null && connection.state != ConnectionState.DISCONNECTED) {
                 connection.handle(message)
             }
         }
