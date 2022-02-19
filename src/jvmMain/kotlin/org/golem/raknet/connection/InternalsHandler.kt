@@ -176,7 +176,11 @@ class InternalsHandler(
                 MessageType.CONNECTION_REQUEST -> ConnectionRequest.from(body)
                 MessageType.DISCONNECTION_NOTIFICATION -> DisconnectionNotification()
                 MessageType.NEW_INCOMING_CONNECTION -> NewIncomingConnection.from(body)
-                else -> buildUserMessage(frame)
+                else -> {
+                    // reset body index before passing it to the builder
+                    body.resetReaderIndex()
+                    buildUserMessage(frame)
+                }
             }
             body.release()
             if(message != null && connection.state != ConnectionState.DISCONNECTED) {
