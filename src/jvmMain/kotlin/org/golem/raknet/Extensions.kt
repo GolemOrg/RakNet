@@ -71,6 +71,7 @@ fun Any?.decode(buffer: ByteBuf): Any? {
         is Boolean -> buffer.readBoolean()
         is String -> buffer.readString()
         is ByteArray -> buffer.readToByteArray(this.size)
+        is ByteBuf -> buffer.readBytes(this)
         is Decodable -> this.decode(buffer)
         else -> null
     }
@@ -90,6 +91,7 @@ fun Any?.encode(buffer: ByteBuf) {
             buffer.writeCharSequence(this, Charsets.UTF_8)
         }
         is ByteArray -> buffer.writeBytes(this)
+        is ByteBuf -> buffer.writeBytes(this)
         is Encodable -> this.encode(buffer)
         is InetSocketAddress -> {
             when (val inner: InetAddress = this.address) {
