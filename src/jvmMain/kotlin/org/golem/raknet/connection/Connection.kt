@@ -82,7 +82,7 @@ class Connection(
             }
             is DisconnectionNotification -> close(DisconnectionReason.ClientRequested)
             is UserMessage -> {
-                eventBus.dispatch(ConnectionEvent.Received(packet))
+                eventBus.dispatch(ConnectionEvent.ReceivedMessage(packet))
                 packet.buffer.release()
             }
         }
