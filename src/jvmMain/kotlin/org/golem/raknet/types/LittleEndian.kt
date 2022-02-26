@@ -10,7 +10,7 @@ value class IntLE(private val value: Int): Encodable, Decodable {
     override fun decode(buffer: ByteBuf): IntLE = IntLE(buffer.readIntLE())
     fun toInt(): Int = value
     fun toUInt(): UInt = value.toUInt()
-    override fun toString(): String = "IntLE(value=$value)"
+    override fun toString(): String = value.toString()
 }
 
 @JvmInline
@@ -19,7 +19,7 @@ value class UIntLE(private val value: UInt): Encodable, Decodable {
     override fun decode(buffer: ByteBuf): IntLE = IntLE(buffer.readIntLE())
     fun toInt(): Int = value.toInt()
     fun toUInt(): UInt = value
-    override fun toString(): String = "UIntLE(value=$value)"
+    override fun toString(): String = value.toString()
 }
 
 @JvmInline
@@ -28,7 +28,7 @@ value class UInt24LE(private val value: UInt): Encodable, Decodable {
     override fun decode(buffer: ByteBuf): UInt24LE = UInt24LE(buffer.readUnsignedMediumLE().toUInt())
     fun toInt(): Int = value.toInt()
     fun toUInt(): UInt = value
-    override fun toString(): String = "UInt24LE(value=$value)"
+    override fun toString(): String = value.toString()
 }
 
 @JvmInline
@@ -37,7 +37,7 @@ value class LongLE(private val value: Long): Encodable, Decodable {
     override fun decode(buffer: ByteBuf): LongLE = LongLE(buffer.readLongLE())
     fun toLong(): Long = value
     fun toULong(): ULong = value.toULong()
-    override fun toString(): String = "LongLE(value=$value)"
+    override fun toString(): String = value.toString()
 }
 
 @JvmInline
@@ -46,7 +46,7 @@ value class ULongLE(private val value: ULong): Encodable, Decodable {
     override fun decode(buffer: ByteBuf): LongLE = LongLE(buffer.readLongLE())
     fun toLong(): Long = value.toLong()
     fun toULong(): ULong = value
-    override fun toString(): String = "ULongLE(value=$value)"
+    override fun toString(): String = value.toString()
 }
 
 @JvmInline
@@ -54,7 +54,7 @@ value class FloatLE(private val value: Float): Encodable, Decodable {
     override fun encode(buffer: ByteBuf) { buffer.writeFloatLE(value) }
     override fun decode(buffer: ByteBuf): FloatLE = FloatLE(buffer.readFloatLE())
     fun toFloat(): Float = value
-    override fun toString(): String = "FloatLE(value=$value)"
+    override fun toString(): String = value.toString()
 }
 
 @JvmInline
@@ -62,5 +62,5 @@ value class DoubleLE(private val value: Double): Encodable, Decodable {
     override fun encode(buffer: ByteBuf) { buffer.writeDoubleLE(value) }
     override fun decode(buffer: ByteBuf): DoubleLE = DoubleLE(buffer.readDoubleLE())
     fun toDouble(): Double = value
-    override fun toString(): String = "DoubleLE(value=$value)"
+    override fun toString(): String = value.toString()
 }
