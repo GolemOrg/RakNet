@@ -21,5 +21,6 @@ class FrameBuilder(private val count: Int) {
         pendingBuffers.clear()
         return buffer
     }
+    override fun toString() = "FrameBuilder(count=$count, pendingBuffers=$pendingBuffers, percentage=%.2f%%)".format(pendingBuffers.size.toDouble() * 100 / count)
 
 }
