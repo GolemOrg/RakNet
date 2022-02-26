@@ -20,7 +20,7 @@ class InternalsHandler(
     private val nackQueue = mutableListOf<UInt>()
 
     var lastReceivedMessageTime = System.currentTimeMillis()
-    var lastReceivedDatagramSequenceNumber: UInt = 0u
+    var largestReceivedDatagramNumber: UInt = 0u
 
     var currentDatagramSequenceNumber: UInt = 0u
     var currentMessageReliableIndex: UInt = 0u
@@ -165,7 +165,7 @@ class InternalsHandler(
     }
 
     fun handle(datagram: Datagram) {
-        lastReceivedDatagramSequenceNumber = datagram.datagramSequenceNumber.toUInt()
+        largestReceivedDatagramNumber = maxOf(datagram.datagramSequenceNumber.toUInt(), largestReceivedDatagramNumber)
         ackQueue.add(datagram.datagramSequenceNumber.toUInt())
         if(nackQueue.contains(datagram.datagramSequenceNumber.toUInt())) {
             nackQueue.remove(datagram.datagramSequenceNumber.toUInt())
