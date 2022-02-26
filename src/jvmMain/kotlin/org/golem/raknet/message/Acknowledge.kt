@@ -1,26 +1,23 @@
 package org.golem.raknet.message
 
 import io.netty.buffer.ByteBuf
-import org.golem.raknet.codec.Decodable
 import org.golem.raknet.codec.OrderedEncodable
 import org.golem.raknet.encode
 import org.golem.raknet.types.UInt24LE
 
-sealed class Record(val sequenceNumber: UInt24LE): OrderedEncodable, Decodable {
+sealed class Record(val sequenceNumber: UInt24LE): OrderedEncodable {
 
     class Single(sequenceNumber: UInt24LE): Record(sequenceNumber) {
         override fun getCount(): Int = 1
         override fun asList(): List<UInt24LE> = listOf(sequenceNumber)
         override fun encodeOrder(): Array<Any> = arrayOf(sequenceNumber)
-        override fun decode(buffer: ByteBuf): Any = Unit
         override fun toString(): String = "Record.Single(sequenceNumber=$sequenceNumber)"
     }
 
-    class Range(sequenceNumber: UInt24LE, val endSequenceNumber: UInt24LE): Record(sequenceNumber) {
+    class Range(beginningSequenceNumber: UInt24LE, val endSequenceNumber: UInt24LE): Record(beginningSequenceNumber) {
         override fun getCount(): Int = endSequenceNumber.toInt() - sequenceNumber.toInt() + 1
         override fun asList(): List<UInt24LE> = (sequenceNumber.toInt()..endSequenceNumber.toInt()).map { UInt24LE(it.toUInt()) }
         override fun encodeOrder(): Array<Any> = arrayOf(sequenceNumber, endSequenceNumber)
-        override fun decode(buffer: ByteBuf): Any = Unit
         override fun toString(): String = "Record.Range(sequenceNumber=$sequenceNumber, endSequenceNumber=$endSequenceNumber)"
     }
 
@@ -41,18 +38,38 @@ class Acknowledge(records: MutableList<Record>): Base(MessageType.ACK.id(), reco
     override fun toString(): String = "Acknowledge(records=$records)"
 
     companion object  {
-        fun fromQueue(queue: MutableList<UInt>): Acknowledge = Acknowledge(compileRecords(queue))
+        fun from(buffer: ByteBuf): Acknowledge = Acknowledge(decompressRecords(buffer))
+        fun fromQueue(queue: MutableList<UInt>): Acknowledge = Acknowledge(compressRecords(queue))
     }
 }
 class NAcknowledge(records: MutableList<Record>): Base(MessageType.NACK.id(), records) {
     override fun toString(): String = "NAcknowledge(records=$records)"
 
     companion object  {
-        fun fromQueue(queue: MutableList<UInt>): NAcknowledge = NAcknowledge(compileRecords(queue))
+        fun from(buffer: ByteBuf): NAcknowledge = NAcknowledge(decompressRecords(buffer))
+        fun fromQueue(queue: MutableList<UInt>): NAcknowledge = NAcknowledge(compressRecords(queue))
     }
 }
 
-private fun compileRecords(queue: MutableList<UInt>): MutableList<Record> {
+private fun decompressRecords(buffer: ByteBuf): MutableList<Record> {
+    val records = mutableListOf<Record>()
+    val count = buffer.readShort()
+    for (i in 0 until count) {
+        val isSingle = buffer.readBoolean()
+        val record = if (isSingle) {
+            Record.Single(sequenceNumber = UInt24LE(buffer.readUnsignedMediumLE().toUInt()))
+        } else {
+            Record.Range(
+                beginningSequenceNumber = UInt24LE(buffer.readUnsignedMediumLE().toUInt()),
+                endSequenceNumber = UInt24LE(buffer.readUnsignedMediumLE().toUInt())
+            )
+        }
+        records.add(record)
+    }
+    return records
+}
+
+private fun compressRecords(queue: MutableList<UInt>): MutableList<Record> {
     val records = mutableListOf<Record>()
     val iterator = queue.iterator()
     var start = iterator.next()
