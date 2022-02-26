@@ -28,7 +28,7 @@ class PersonalConnection(
             when(it) {
                 is ConnectionEvent.Connected -> this.handleConnect()
                 is ConnectionEvent.Disconnected -> this.handleDisconnect()
-                is ConnectionEvent.Received -> this.handleMessage(it.message)
+                is ConnectionEvent.ReceivedMessage -> this.handleMessage(it.message)
                 is ConnectionEvent.LatencyUpdated -> {
                     log("Latency updated to ${it.latency}")
                 }
