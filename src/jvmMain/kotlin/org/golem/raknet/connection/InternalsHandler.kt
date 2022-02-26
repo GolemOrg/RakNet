@@ -165,24 +165,15 @@ class InternalsHandler(
     }
 
     fun handle(datagram: Datagram) {
+        lastReceivedDatagramSequenceNumber = datagram.datagramSequenceNumber.toUInt()
         ackQueue.add(datagram.datagramSequenceNumber.toUInt())
+        if(nackQueue.contains(datagram.datagramSequenceNumber.toUInt())) {
+            nackQueue.remove(datagram.datagramSequenceNumber.toUInt())
+        }
         // TODO: NAKs
-        for(frame in datagram.frames) {
-            val body = frame.body
-            val id = body.readUnsignedByte().toInt()
-            val message: OnlineMessage? = when(MessageType.find(id)) {
-                MessageType.CONNECTED_PING -> ConnectedPing.from(body)
-                MessageType.CONNECTED_PONG -> ConnectedPong.from(body)
-                MessageType.CONNECTION_REQUEST -> ConnectionRequest.from(body)
-                MessageType.DISCONNECTION_NOTIFICATION -> DisconnectionNotification()
-                MessageType.NEW_INCOMING_CONNECTION -> NewIncomingConnection.from(body)
-                else -> {
-                    // reset body index before passing it to the builder
-                    body.resetReaderIndex()
-                    buildUserMessage(frame)
-                }
-            }
-            body.release()
+
+        datagram.frames.forEach { frame ->
+            val message = createMessage(frame)
             if(message != null && connection.state != ConnectionState.DISCONNECTED) {
                 connection.handle(message)
             }
@@ -210,21 +201,40 @@ class InternalsHandler(
         }
     }
 
-    private fun buildUserMessage(frame: Frame): UserMessage? {
-        val body = frame.body
-        if(frame.fragment != null) {
+    private fun createMessage(frame: Frame): OnlineMessage? {
+        // If there is a fragment, we'll try to reconstruct the buffer with a builder
+        // Otherwise, we'll just use the frame's buffer
+        val buffer: ByteBuf = if(frame.fragment != null) {
             val fragment = frame.fragment
-            val builder = pendingFrames.getOrPut(fragment.fragmentId) {
-                FrameBuilder(fragment.count)
-            }
+            // Create/get the frame builder from the fragment id
+            // TODO: Track the builder's lifetime and clean it up if inactive
+            val builder = pendingFrames.getOrPut(fragment.fragmentId) { FrameBuilder(fragment.count) }
+            // Add the fragment to the builder
             builder.add(frame)
-            if(builder.complete()) {
-                val buffer = builder.build()
-                pendingFrames.remove(fragment.fragmentId)
-                return UserMessage(buffer.readUnsignedByte().toInt(), buffer)
+            // Release the buffer to avoid a leak
+            frame.body.release()
+            // If the builder isn't complete, return null from the entire function
+            if(!builder.complete()) return null
+
+            // Remove the builder from the pending frames & build it
+            pendingFrames.remove(fragment.fragmentId)
+            builder.build()
+        } else { frame.body }
+
+        // We have a message!
+        try {
+            return when(MessageType.find(buffer.readUnsignedByte().toInt())) {
+                MessageType.CONNECTED_PING -> ConnectedPing.from(buffer)
+                MessageType.CONNECTED_PONG -> ConnectedPong.from(buffer)
+                MessageType.CONNECTION_REQUEST -> ConnectionRequest.from(buffer)
+                MessageType.DISCONNECTION_NOTIFICATION -> DisconnectionNotification()
+                MessageType.NEW_INCOMING_CONNECTION -> NewIncomingConnection.from(buffer)
+                else -> UserMessage(buffer.readUnsignedByte().toInt(), buffer.readBytes(buffer.readableBytes()))
             }
-            return null
+        } finally {
+            //  Make sure to release the buffer after returning
+            // TODO: Auto-releasing buffers?
+            buffer.release()
         }
-        return UserMessage(body.readUnsignedByte().toInt(), body.readBytes(body.readableBytes()))
     }
 }
