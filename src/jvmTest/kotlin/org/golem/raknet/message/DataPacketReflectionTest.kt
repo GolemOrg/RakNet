@@ -1,8 +1,8 @@
 package org.golem.raknet.message
 
-import org.golem.benchmark.Benchmark
-import org.golem.benchmark.BenchmarkTarget
-import org.golem.benchmark.BenchmarkType
+import org.golem.benchpress.Benchmark
+import org.golem.benchpress.BenchmarkTarget
+import org.golem.benchpress.BenchmarkType
 import io.netty.buffer.Unpooled
 import kotlin.random.Random
 
