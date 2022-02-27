@@ -219,13 +219,14 @@ class InternalsHandler(
 
         // We have a message!
         try {
-            return when(MessageType.find(buffer.readUnsignedByte().toInt())) {
+            val id = buffer.readUnsignedByte().toInt()
+            return when(MessageType.find(id)) {
                 MessageType.CONNECTED_PING -> ConnectedPing.from(buffer)
                 MessageType.CONNECTED_PONG -> ConnectedPong.from(buffer)
                 MessageType.CONNECTION_REQUEST -> ConnectionRequest.from(buffer)
                 MessageType.DISCONNECTION_NOTIFICATION -> DisconnectionNotification()
                 MessageType.NEW_INCOMING_CONNECTION -> NewIncomingConnection.from(buffer)
-                else -> UserMessage(buffer.readUnsignedByte().toInt(), buffer.readBytes(buffer.readableBytes()))
+                else -> UserMessage(id, buffer.readBytes(buffer.readableBytes()))
             }
         } finally {
             //  Make sure to release the buffer after returning

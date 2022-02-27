@@ -12,7 +12,7 @@ class Datagram(
 ): OnlineMessage(Flags.DATAGRAM.id()){
 
     override fun encodeHeader(buffer: ByteBuf) {
-        buffer.writeByte(flags.fold(0){ acc, flag -> acc or flag.id() })
+        buffer.writeByte(flags.fold(0) { acc, flag -> acc or flag.id() })
     }
 
     override fun encodeOrder(): Array<Any> = arrayOf(
