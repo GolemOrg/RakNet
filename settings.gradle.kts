@@ -1,3 +1,1 @@
-
-rootProject.name = "raknet-kt"
-
+rootProject.name = "raknet"
