@@ -5,7 +5,8 @@ import org.golem.raknet.types.Magic
 import org.golem.raknet.types.Magic.readMagic
 import org.golem.raknet.message.OfflineMessage
 import org.golem.raknet.message.MessageType
-import org.golem.raknet.readString
+import org.golem.raknet.readRakString
+import org.golem.raknet.types.RakString
 
 class UnconnectedPong(
     var pingId: Long,
@@ -14,14 +15,14 @@ class UnconnectedPong(
     var serverName: String,
 ): OfflineMessage(MessageType.UNCONNECTED_PONG.id()) {
 
-    override fun encodeOrder(): Array<Any> = arrayOf(pingId, guid, magic, serverName)
+    override fun encodeOrder(): Array<Any> = arrayOf(pingId, guid, magic, RakString(serverName))
 
     companion object {
         fun from(buffer: ByteBuf): UnconnectedPong = UnconnectedPong(
             buffer.readLong(),
             buffer.readLong(),
             buffer.readMagic(),
-            buffer.readString()
+            buffer.readRakString()
         )
     }
 

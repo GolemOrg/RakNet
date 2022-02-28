@@ -35,7 +35,7 @@ fun ByteBuf.readToByteArray(length: Int): ByteArray {
     readBytes(bytes)
     return bytes
 }
-fun ByteBuf.readString(): String = readCharSequence(readUnsignedShort(), Charsets.UTF_8).toString()
+fun ByteBuf.readRakString(): String = readCharSequence(readUnsignedShort(), Charsets.UTF_8).toString()
 
 fun ByteBuf.split(maxSize: Int): MutableList<ByteBuf> {
     var current = ByteBufAllocator.DEFAULT.ioBuffer()
@@ -69,7 +69,7 @@ fun Any?.decode(buffer: ByteBuf): Any? {
         is Double -> buffer.readDouble()
         is Char -> buffer.readChar()
         is Boolean -> buffer.readBoolean()
-        is String -> buffer.readString()
+        is String -> buffer.readRakString()
         is ByteArray -> buffer.readToByteArray(this.size)
         is ByteBuf -> buffer.readBytes(this)
         is Decodable -> this.decode(buffer)
@@ -86,10 +86,6 @@ fun Any?.encode(buffer: ByteBuf) {
         is Long -> buffer.writeLong(this)
         is Float -> buffer.writeFloat(this)
         is Double -> buffer.writeDouble(this)
-        is String -> {
-            buffer.writeShort(this.length)
-            buffer.writeCharSequence(this, Charsets.UTF_8)
-        }
         is ByteArray -> buffer.writeBytes(this)
         is ByteBuf -> buffer.writeBytes(this)
         is Encodable -> this.encode(buffer)
