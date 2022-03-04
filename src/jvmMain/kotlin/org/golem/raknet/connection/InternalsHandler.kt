@@ -25,7 +25,7 @@ class InternalsHandler(
     var currentDatagramSequenceNumber: UInt = 0u
     var currentMessageReliableIndex: UInt = 0u
     var currentOrderIndex: UInt = 0u
-    private val currentFragmentIndex: Short = 0.toShort()
+    private val currentFragmentIndex: Short = 0
 
     private val sendQueue: MutableList<Frame> = mutableListOf()
     private val resendQueue: MutableMap<UInt24LE, Frame> = mutableMapOf()
@@ -174,7 +174,6 @@ class InternalsHandler(
             nackQueue.remove(datagram.datagramSequenceNumber.toUInt())
         }
         // TODO: NAKs
-
         datagram.frames.forEach { frame ->
             val message = createMessage(frame)
             if(message != null && connection.state != ConnectionState.DISCONNECTED) {
