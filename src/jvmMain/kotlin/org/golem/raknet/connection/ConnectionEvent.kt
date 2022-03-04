@@ -1,12 +1,12 @@
 package org.golem.raknet.connection
 
-import org.golem.raknet.message.OnlineMessage
+import org.golem.raknet.message.UserMessage
 
 sealed class ConnectionEvent {
     object Connected : ConnectionEvent() {
         override fun toString() = "ConnectedEvent"
     }
-    class ReceivedMessage(val message: OnlineMessage) : ConnectionEvent() {
+    class ReceivedMessage(val message: UserMessage) : ConnectionEvent() {
         override fun toString() = "ReceivedMessageEvent(message=$message)"
     }
     class LatencyUpdated(val latency: Long) : ConnectionEvent() {
