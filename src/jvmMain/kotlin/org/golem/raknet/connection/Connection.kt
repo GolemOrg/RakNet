@@ -22,7 +22,7 @@ class Connection(
 ) {
     private val internalsHandler = InternalsHandler(this, context)
     private val worker: NioEventLoopGroup = NioEventLoopGroup()
-    val eventBus = EventBus<ConnectionEvent>()
+    private val eventBus = EventBus<ConnectionEvent>()
 
     var state: ConnectionState = ConnectionState.INITIALIZING
         private set
@@ -57,7 +57,12 @@ class Connection(
                 ))
             }
             is NewIncomingConnection -> {
-                worker.scheduleAtFixedRate(this::ping, TimeComponent.PING.toLong(), TimeComponent.PING.toLong(), TimeUnit.MILLISECONDS)
+                worker.scheduleAtFixedRate(
+                    this::ping,
+                    TimeComponent.PING.toLong(),
+                    TimeComponent.PING.toLong(),
+                    TimeUnit.MILLISECONDS
+                )
                 state = ConnectionState.CONNECTED
                 eventBus.dispatch(ConnectionEvent.Connected)
             }
@@ -81,6 +86,8 @@ class Connection(
     fun send(packet: OnlineMessage, immediate: Boolean = false) = internalsHandler.send(packet, immediate)
 
     fun ping() = send(ConnectedPing(time = server.getUptime()), true)
+
+    fun getEventBus() = eventBus
 
     fun close(reason: DisconnectionReason) {
         worker.shutdownGracefully()
