@@ -58,6 +58,9 @@ class InternalsHandler(
     }
 
     fun send(packet: OnlineMessage, immediate: Boolean = false) {
+        if(!connection.isConnected) {
+            return
+        }
         val buffer = packet.prepare()
         if(buffer.readableBytes() > connection.mtuSize) {
             val buffers = buffer.split(connection.mtuSize.toInt())
