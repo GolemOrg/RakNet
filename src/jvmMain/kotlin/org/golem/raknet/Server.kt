@@ -28,7 +28,7 @@ class Server(
     val guid: UUID = UUID.randomUUID(),
     var name: String = ""
 ) {
-    init { ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.PARANOID) }
+    init { ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.SIMPLE) }
 
     private val group = NioEventLoopGroup()
     private val startTime: Long = System.currentTimeMillis()
@@ -55,7 +55,7 @@ class Server(
                         MessageEncoder<OnlineMessage>(),
                         // Handlers
                         UnconnectedMessageHandler(this@Server),
-                        ConnectedMessageHandler(this@Server),
+                        ConnectedMessageHandler(this@Server)
                     )
                 }
             })

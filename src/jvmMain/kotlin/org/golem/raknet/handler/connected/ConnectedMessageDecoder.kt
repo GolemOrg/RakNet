@@ -22,12 +22,11 @@ class ConnectedMessageDecoder(private val server: Server): MessageToMessageDecod
             MessageType.NACK -> NAcknowledge.from(buffer)
             else -> {
                 if(id and Flags.DATAGRAM.id() == 0) {
-                    // A datagram wasn't received
-                    println("Received a datagram packet, but it wasn't a datagram. Ignoring...")
                     throw ConnectionException("Received a message that wasn't a datagram while connected")
                 }
                 // Reset reader index to the beginning of the buffer so that the datagram can decode its own flags
                 buffer.resetReaderIndex()
+
                 Datagram.from(buffer)
             }
         }
