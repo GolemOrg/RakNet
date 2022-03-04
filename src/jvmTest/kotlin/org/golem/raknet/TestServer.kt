@@ -1,9 +1,10 @@
 package org.golem.raknet
-
+import io.netty.buffer.ByteBufAllocator
 import io.netty.channel.nio.NioEventLoopGroup
 import org.golem.raknet.connection.Connection
 import org.golem.raknet.connection.ConnectionEvent
 import org.golem.raknet.message.OnlineMessage
+import org.golem.raknet.message.UserMessage
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -24,7 +25,7 @@ class PersonalConnection(
 ) {
 
     init {
-        connection.eventBus.listen(this) {
+        connection.getEventBus().listen(this) {
             when(it) {
                 is ConnectionEvent.Connected -> this.handleConnect()
                 is ConnectionEvent.Disconnected -> this.handleDisconnect()
@@ -42,11 +43,19 @@ class PersonalConnection(
 
     private fun handleMessage(message: OnlineMessage) {
         log("Received message: $message")
+        if(message.id != 0xFE) {
+            return
+        }
+        val bytes = arrayOf<Byte>(0x63, 0x65, 0x62, 0x60, 0x60, 0x60, 0x04, 0x00).toByteArray()
+        val buffer = ByteBufAllocator.DEFAULT.ioBuffer()
+        buffer.writeBytes(bytes)
+        val status = UserMessage(0xFE, buffer)
+        connection.send(status, true)
     }
 
     private fun handleDisconnect() {
         log("Client disconnected")
-        connection.eventBus.remove(this)
+        connection.getEventBus().remove(this)
     }
 
     fun log(message: String, level: String = "INFO") {
