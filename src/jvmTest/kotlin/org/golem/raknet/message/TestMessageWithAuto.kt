@@ -1,7 +1,7 @@
 package org.golem.raknet.message
 
 import io.netty.buffer.ByteBuf
-import org.golem.raknet.encode
+import org.golem.netty.codec.encode
 
 class TestMessageWithAuto(
     private val testLong: Long,

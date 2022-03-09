@@ -1,7 +1,7 @@
 package org.golem.raknet.message
 
-import org.golem.raknet.codec.Decodable
-import org.golem.raknet.codec.Encodable
+import org.golem.netty.codec.Decodable
+import org.golem.netty.codec.Encodable
 
 /**
  * This is the base layer for any RakNet Packet.

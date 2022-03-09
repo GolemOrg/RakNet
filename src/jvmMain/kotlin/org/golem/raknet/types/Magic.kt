@@ -1,9 +1,9 @@
 package org.golem.raknet.types
 
 import io.netty.buffer.ByteBuf
-import org.golem.raknet.codec.Decodable
-import org.golem.raknet.codec.Encodable
-import org.golem.raknet.readToByteArray
+import org.golem.netty.codec.Decodable
+import org.golem.netty.codec.Encodable
+import org.golem.netty.readToByteArray
 
 object Magic : Encodable, Decodable {
 

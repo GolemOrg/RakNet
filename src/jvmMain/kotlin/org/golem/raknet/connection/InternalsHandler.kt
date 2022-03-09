@@ -8,8 +8,8 @@ import org.golem.raknet.handler.MessageEnvelope
 import org.golem.raknet.message.*
 import org.golem.raknet.message.datagram.*
 import org.golem.raknet.message.protocol.*
-import org.golem.raknet.split
-import org.golem.raknet.types.UInt24LE
+import org.golem.netty.split
+import org.golem.netty.types.UMediumLE
 
 class InternalsHandler(
     private val connection: Connection,
@@ -28,7 +28,7 @@ class InternalsHandler(
     private val currentFragmentIndex: Short = 0
 
     private val sendQueue: MutableList<Frame> = mutableListOf()
-    private val resendQueue: MutableMap<UInt24LE, Frame> = mutableMapOf()
+    private val resendQueue: MutableMap<UMediumLE, Frame> = mutableMapOf()
     private val pendingFrames: MutableMap<Short, FrameBuilder> = mutableMapOf()
 
     fun tick() {
@@ -47,9 +47,9 @@ class InternalsHandler(
 
     private fun createDefaultFrame(buffer: ByteBuf, fragment: Fragment? = null): Frame {
         return Frame.ReliableOrdered(
-            messageIndex = UInt24LE(currentMessageReliableIndex++),
+            messageIndex = UMediumLE(currentMessageReliableIndex++),
             order = Order(
-                index = UInt24LE(currentOrderIndex++),
+                index = UMediumLE(currentOrderIndex++),
                 channel = 0
             ),
             fragment = fragment,
@@ -91,7 +91,7 @@ class InternalsHandler(
         try {
             val datagram = Datagram(
                 flags = mutableListOf(Flags.DATAGRAM),
-                datagramSequenceNumber = UInt24LE(currentDatagramSequenceNumber++),
+                datagramSequenceNumber = UMediumLE(currentDatagramSequenceNumber++),
                 frames = mutableListOf(
                     Frame.Unreliable(
                         body = prepared,
@@ -160,7 +160,7 @@ class InternalsHandler(
     private fun dispatchFrameQueue() {
         val datagram = Datagram(
             flags = mutableListOf(Flags.DATAGRAM),
-            datagramSequenceNumber = UInt24LE(currentDatagramSequenceNumber++),
+            datagramSequenceNumber = UMediumLE(currentDatagramSequenceNumber++),
             frames = sendQueue
         )
         write(datagram)

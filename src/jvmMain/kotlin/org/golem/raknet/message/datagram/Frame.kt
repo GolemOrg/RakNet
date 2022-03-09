@@ -1,11 +1,11 @@
 package org.golem.raknet.message.datagram
 
 import io.netty.buffer.ByteBuf
-import org.golem.raknet.codec.OrderedEncodable
-import org.golem.raknet.encode
+import org.golem.netty.codec.OrderedEncodable
+import org.golem.netty.codec.encode
 import org.golem.raknet.enums.Flags
 import org.golem.raknet.enums.Reliability
-import org.golem.raknet.types.UInt24LE
+import org.golem.netty.types.UMediumLE
 
 sealed class Frame(
     private val reliability: Reliability,
@@ -17,7 +17,7 @@ sealed class Frame(
         override fun toString(): String = "Unreliable(fragment=$fragment, body=ByteBuf(${body.readableBytes()}))"
     }
     class UnreliableSequenced(
-        val sequenceIndex: UInt24LE,
+        val sequenceIndex: UMediumLE,
         fragment: Fragment?,
         body: ByteBuf
     ) : Frame(Reliability.UNRELIABLE_SEQUENCED, fragment, body) {
@@ -25,7 +25,7 @@ sealed class Frame(
         override fun toString(): String = "UnreliableSequenced(sequenceIndex=$sequenceIndex, fragment=$fragment, body=ByteBuf(${body.readableBytes()}))"
     }
     class Reliable(
-        val messageIndex: UInt24LE,
+        val messageIndex: UMediumLE,
         fragment: Fragment?,
         body: ByteBuf
     ) : Frame(Reliability.RELIABLE, fragment, body) {
@@ -33,7 +33,7 @@ sealed class Frame(
         override fun toString(): String = "Reliable(messageIndex=$messageIndex, fragment=$fragment, body=ByteBuf(${body.readableBytes()}))"
     }
     class ReliableOrdered(
-        val messageIndex: UInt24LE,
+        val messageIndex: UMediumLE,
         val order: Order,
         fragment: Fragment?,
         body: ByteBuf
@@ -68,19 +68,19 @@ sealed class Frame(
                     body = buffer.readBytes(bodyLength)
                 )
                 Reliability.UNRELIABLE_SEQUENCED -> UnreliableSequenced(
-                    sequenceIndex = UInt24LE(buffer.readUnsignedMediumLE().toUInt()),
+                    sequenceIndex = UMediumLE(buffer.readUnsignedMediumLE().toUInt()),
                     fragment = if(hasFragment) Fragment(buffer.readInt(), buffer.readShort(), buffer.readInt()) else null,
                     body = buffer.readBytes(bodyLength)
                 )
                 Reliability.RELIABLE -> Reliable(
-                    messageIndex =  UInt24LE(buffer.readUnsignedMediumLE().toUInt()),
+                    messageIndex =  UMediumLE(buffer.readUnsignedMediumLE().toUInt()),
                     fragment = if(hasFragment) Fragment(buffer.readInt(), buffer.readShort(), buffer.readInt()) else null,
                     body = buffer.readBytes(bodyLength)
                 )
                 Reliability.RELIABLE_ORDERED -> ReliableOrdered(
-                    messageIndex =  UInt24LE(buffer.readUnsignedMediumLE().toUInt()),
+                    messageIndex =  UMediumLE(buffer.readUnsignedMediumLE().toUInt()),
                     order = Order(
-                        index = UInt24LE(buffer.readUnsignedMediumLE().toUInt()),
+                        index = UMediumLE(buffer.readUnsignedMediumLE().toUInt()),
                         channel = buffer.readUnsignedByte().toByte()
                     ),
                     fragment = if(hasFragment) Fragment(buffer.readInt(), buffer.readShort(), buffer.readInt()) else null,

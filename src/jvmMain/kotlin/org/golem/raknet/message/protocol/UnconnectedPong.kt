@@ -5,8 +5,8 @@ import org.golem.raknet.types.Magic
 import org.golem.raknet.types.Magic.readMagic
 import org.golem.raknet.message.OfflineMessage
 import org.golem.raknet.message.MessageType
-import org.golem.raknet.readRakString
 import org.golem.raknet.types.RakString
+import org.golem.raknet.types.readRakString
 
 class UnconnectedPong(
     var pingId: Long,

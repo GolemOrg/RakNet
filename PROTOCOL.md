@@ -12,7 +12,7 @@ to provide a more accurate and complete description of the protocol.
 | Boolean                      | 1               | 0 - 1                          | A one-byte value that represents true (0x1) or false (0x0). |
 | Short                        | 2               | -32,678 - 32,677               |                                                             |
 | Unsigned Short               | 2               | 0 - 65,535                     |                                                             |
-| Unsigned Triad LE (uint24le) | 3               | 0 - 16,777,215                 | This value is encoded as little endian.                     |
+| Unsigned Triad LE (UMediumLE) | 3               | 0 - 16,777,215                 | This value is encoded as little endian.                     |
 | Integer                      | 4               | -2,147,483,648 - 2,147,483,647 | A signed 32-bit integer.                                    |
 | Long                         | 8               | -2^63 to 2^63-1                | A signed 64-bit integer.                                    |
 
