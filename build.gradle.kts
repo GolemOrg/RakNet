@@ -25,8 +25,8 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation("io.netty:netty-all:4.1.72.Final")
-                implementation("com.esotericsoftware.reflectasm:reflectasm:1.09")
                 implementation("com.github.GolemOrg:events:1.0.3")
+                implementation("com.github.GolemOrg:nettyhelpers:0.0.2")
             }
         }
         val jvmTest by getting {

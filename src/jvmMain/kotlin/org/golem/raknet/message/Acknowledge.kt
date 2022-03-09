@@ -1,28 +1,28 @@
 package org.golem.raknet.message
 
 import io.netty.buffer.ByteBuf
-import org.golem.raknet.codec.OrderedEncodable
-import org.golem.raknet.encode
-import org.golem.raknet.types.UInt24LE
+import org.golem.netty.codec.OrderedEncodable
+import org.golem.netty.codec.encode
+import org.golem.netty.types.UMediumLE
 
-sealed class Record(val sequenceNumber: UInt24LE): OrderedEncodable {
+sealed class Record(val sequenceNumber: UMediumLE): OrderedEncodable {
 
-    class Single(sequenceNumber: UInt24LE): Record(sequenceNumber) {
+    class Single(sequenceNumber: UMediumLE): Record(sequenceNumber) {
         override fun getCount(): Int = 1
-        override fun asList(): List<UInt24LE> = listOf(sequenceNumber)
+        override fun asList(): List<UMediumLE> = listOf(sequenceNumber)
         override fun encodeOrder(): Array<Any> = arrayOf(sequenceNumber)
         override fun toString(): String = "Record.Single(sequenceNumber=$sequenceNumber)"
     }
 
-    class Range(beginningSequenceNumber: UInt24LE, val endSequenceNumber: UInt24LE): Record(beginningSequenceNumber) {
+    class Range(beginningSequenceNumber: UMediumLE, val endSequenceNumber: UMediumLE): Record(beginningSequenceNumber) {
         override fun getCount(): Int = endSequenceNumber.toInt() - sequenceNumber.toInt() + 1
-        override fun asList(): List<UInt24LE> = (sequenceNumber.toInt()..endSequenceNumber.toInt()).map { UInt24LE(it.toUInt()) }
+        override fun asList(): List<UMediumLE> = (sequenceNumber.toInt()..endSequenceNumber.toInt()).map { UMediumLE(it.toUInt()) }
         override fun encodeOrder(): Array<Any> = arrayOf(sequenceNumber, endSequenceNumber)
         override fun toString(): String = "Record.Range(sequenceNumber=$sequenceNumber, endSequenceNumber=$endSequenceNumber)"
     }
 
     abstract fun getCount(): Int
-    abstract fun asList(): List<UInt24LE>
+    abstract fun asList(): List<UMediumLE>
 
     override fun encode(buffer: ByteBuf) {
         buffer.writeBoolean(getCount() == 1) // Is Single?
@@ -57,11 +57,11 @@ private fun decompressRecords(buffer: ByteBuf): MutableList<Record> {
     for (i in 0 until count) {
         val isSingle = buffer.readBoolean()
         val record = if (isSingle) {
-            Record.Single(sequenceNumber = UInt24LE(buffer.readUnsignedMediumLE().toUInt()))
+            Record.Single(sequenceNumber = UMediumLE(buffer.readUnsignedMediumLE().toUInt()))
         } else {
             Record.Range(
-                beginningSequenceNumber = UInt24LE(buffer.readUnsignedMediumLE().toUInt()),
-                endSequenceNumber = UInt24LE(buffer.readUnsignedMediumLE().toUInt())
+                beginningSequenceNumber = UMediumLE(buffer.readUnsignedMediumLE().toUInt()),
+                endSequenceNumber = UMediumLE(buffer.readUnsignedMediumLE().toUInt())
             )
         }
         records.add(record)
@@ -77,13 +77,13 @@ private fun compressRecords(queue: MutableList<UInt>): MutableList<Record> {
     while(iterator.hasNext()) {
         val next = iterator.next()
         if(end - next > 1u) {
-            records.add(if(start != end) Record.Range(UInt24LE(start), UInt24LE(end)) else Record.Single(UInt24LE(start)))
+            records.add(if(start != end) Record.Range(UMediumLE(start), UMediumLE(end)) else Record.Single(UMediumLE(start)))
             start = next
             end = next
         } else {
             end = next
         }
     }
-    records.add(if(start != end) Record.Range(UInt24LE(start), UInt24LE(end)) else Record.Single(UInt24LE(start)))
+    records.add(if(start != end) Record.Range(UMediumLE(start), UMediumLE(end)) else Record.Single(UMediumLE(start)))
     return records
 }

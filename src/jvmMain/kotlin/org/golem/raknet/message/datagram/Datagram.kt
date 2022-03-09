@@ -3,11 +3,11 @@ package org.golem.raknet.message.datagram
 import io.netty.buffer.ByteBuf
 import org.golem.raknet.enums.Flags
 import org.golem.raknet.message.OnlineMessage
-import org.golem.raknet.types.UInt24LE
+import org.golem.netty.types.UMediumLE
 
 class Datagram(
     val flags: MutableList<Flags>,
-    val datagramSequenceNumber: UInt24LE,
+    val datagramSequenceNumber: UMediumLE,
     val frames: MutableList<Frame>,
 ): OnlineMessage(Flags.DATAGRAM.id()){
 
@@ -25,7 +25,7 @@ class Datagram(
     companion object {
         fun from(buffer: ByteBuf): Datagram {
             val flags = Flags.from(buffer.readUnsignedByte().toInt()).toMutableList()
-            val datagramSequenceNumber = UInt24LE(buffer.readUnsignedMediumLE().toUInt())
+            val datagramSequenceNumber = UMediumLE(buffer.readUnsignedMediumLE().toUInt())
             val frames = mutableListOf<Frame>()
             while (buffer.isReadable) {
                 val frame = Frame.from(buffer)

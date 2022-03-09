@@ -1,11 +1,11 @@
 package org.golem.raknet.message.protocol
 
 import io.netty.buffer.ByteBuf
+import org.golem.netty.readAddress
 import org.golem.raknet.types.Magic
 import org.golem.raknet.types.Magic.readMagic
 import org.golem.raknet.message.OfflineMessage
 import org.golem.raknet.message.MessageType
-import org.golem.raknet.readAddress
 import java.net.InetSocketAddress
 
 class OpenConnectionReply2(

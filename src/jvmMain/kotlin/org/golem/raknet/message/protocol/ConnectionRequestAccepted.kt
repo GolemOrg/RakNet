@@ -4,7 +4,7 @@ import io.netty.buffer.ByteBuf
 import org.golem.raknet.enums.AddressCount
 import org.golem.raknet.message.OnlineMessage
 import org.golem.raknet.message.MessageType
-import org.golem.raknet.readAddress
+import org.golem.netty.readAddress
 import java.net.InetSocketAddress
 
 class ConnectionRequestAccepted(

@@ -1,9 +1,9 @@
 package org.golem.raknet.message.datagram
 
-import org.golem.raknet.codec.OrderedEncodable
-import org.golem.raknet.types.UInt24LE
+import org.golem.netty.codec.OrderedEncodable
+import org.golem.netty.types.UMediumLE
 
-data class Order(val index: UInt24LE, val channel: Byte): OrderedEncodable {
+data class Order(val index: UMediumLE, val channel: Byte): OrderedEncodable {
     override fun encodeOrder(): Array<Any> = arrayOf(index, channel)
 
     override fun toString(): String = "Order(index=$index, channel=$channel)"

@@ -2,7 +2,7 @@ package org.golem.raknet.message.datagram
 
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.ByteBufAllocator
-import org.golem.raknet.readToByteArray
+import org.golem.netty.readToByteArray
 
 class FrameBuilder(private val count: Int) {
 

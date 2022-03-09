@@ -2,7 +2,7 @@ package org.golem.raknet.message
 
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.ByteBufAllocator
-import org.golem.raknet.codec.OrderedEncodable
+import org.golem.netty.codec.OrderedEncodable
 
 abstract class DataMessage(open val id: Int) : Message, OrderedEncodable {
 
