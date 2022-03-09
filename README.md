@@ -1,4 +1,5 @@
-# A RakNet library built in the Kotlin Programming Language
+# RakNet
+A RakNet library built in the Kotlin Programming Language
 
 ## Introduction
 The first question to ask about this library should be: "why?"
