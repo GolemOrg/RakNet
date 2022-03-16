@@ -2,7 +2,6 @@ package org.golem.raknet.connection
 
 import io.netty.buffer.ByteBuf
 import io.netty.channel.ChannelHandlerContext
-import io.netty.channel.socket.DatagramPacket
 import org.golem.raknet.enums.Flags
 import org.golem.raknet.handler.MessageEnvelope
 import org.golem.raknet.message.*
@@ -87,41 +86,21 @@ class InternalsHandler(
     }
 
     fun sendInternal(packet: OnlineMessage) {
-        val prepared = packet.prepare()
-        try {
-            val datagram = Datagram(
-                flags = mutableListOf(Flags.DATAGRAM),
-                datagramSequenceNumber = UMediumLE(currentDatagramSequenceNumber++),
-                frames = mutableListOf(
-                    Frame.Unreliable(
-                        body = prepared,
-                        fragment = null
-                    )
+        val datagram = Datagram(
+            flags = mutableListOf(Flags.DATAGRAM),
+            datagramSequenceNumber = UMediumLE(currentDatagramSequenceNumber++),
+            frames = mutableListOf(
+                Frame.Unreliable(
+                    body = packet.prepare(),
+                    fragment = null
                 )
             )
-            context.writeAndFlush(MessageEnvelope(datagram, connection.address))
-        } finally {
-            prepared.release()
-        }
+        )
+        context.writeAndFlush(MessageEnvelope(datagram, connection.address))
     }
 
-    /**
-     * TODO: Hack! We need to find a better solution
-     *
-     * The best way to do this would be to use a method that
-     * can release the buffers inside after the write is done?
-     *
-     * If possible, it'd be good to use the packet envelope
-     * for sending the datagram, but seeing as the datagram
-     * will still hold frames w/ buffers inside of them,
-     * that is not possible in our current system.
-     */
     fun write(datagram: Datagram) {
-        val prepared = datagram.prepare()
-        context.writeAndFlush(DatagramPacket(prepared, connection.address))
-        for(frame in datagram.frames) {
-            frame.body.release()
-        }
+        context.writeAndFlush(MessageEnvelope(datagram, connection.address))
     }
 
     fun write(acknowledge: Acknowledge) {

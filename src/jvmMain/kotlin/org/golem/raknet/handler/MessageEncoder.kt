@@ -10,6 +10,6 @@ class MessageEncoder<T: DataMessage>: MessageToMessageEncoder<MessageEnvelope<T>
     override fun encode(ctx: ChannelHandlerContext, msg: MessageEnvelope<T>, out: MutableList<Any>) {
         val buffer = msg.content().prepare()
         ctx.writeAndFlush(DatagramPacket(buffer, msg.sender()))
-        buffer.release()
+        runCatching { buffer.release() }
     }
 }
