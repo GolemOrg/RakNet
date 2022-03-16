@@ -40,7 +40,7 @@ class InternalsHandler(
         if(nackQueue.size > 0) dispatchNAckQueue()
         if(sendQueue.size > 0) dispatchFrameQueue()
 
-        if(System.currentTimeMillis() - lastReceivedMessageTime > TimeComponent.TIMEOUT.toLong()) {
+        if(System.currentTimeMillis() - lastReceivedMessageTime > ComponentDuration.TIMEOUT.toMilliseconds()) {
             connection.close(DisconnectionReason.Timeout)
         }
     }
