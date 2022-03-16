@@ -34,7 +34,7 @@ class Connection(
 
 
     init {
-        worker.scheduleAtFixedRate(this::tick, 0, TimeComponent.UPDATE.toLong(), TimeUnit.MILLISECONDS)
+        worker.scheduleAtFixedRate(this::tick, 0, ComponentDuration.UPDATE.toMilliseconds(), TimeUnit.MILLISECONDS)
     }
 
     private fun tick() {
@@ -59,8 +59,8 @@ class Connection(
             is NewIncomingConnection -> {
                 worker.scheduleAtFixedRate(
                     this::ping,
-                    TimeComponent.PING.toLong(),
-                    TimeComponent.PING.toLong(),
+                    ComponentDuration.PING.toMilliseconds(),
+                    ComponentDuration.PING.toMilliseconds(),
                     TimeUnit.MILLISECONDS
                 )
                 state = ConnectionState.CONNECTED
