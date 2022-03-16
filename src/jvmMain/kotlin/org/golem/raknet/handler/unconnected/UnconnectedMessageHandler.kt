@@ -6,8 +6,6 @@ import org.golem.raknet.CURRENT_PROTOCOL_VERSION
 import org.golem.raknet.types.Magic
 import org.golem.raknet.Server
 import org.golem.raknet.connection.Connection
-import org.golem.raknet.connection.MAX_MTU
-import org.golem.raknet.connection.MIN_MTU
 import org.golem.raknet.handler.MessageEnvelope
 import org.golem.raknet.message.OfflineMessage
 import org.golem.raknet.message.protocol.*
@@ -48,11 +46,12 @@ class UnconnectedMessageHandler(private val server: Server): SimpleChannelInboun
             }
             is OpenConnectionRequest2 -> {
                 var mtuSize = packet.mtuSize
-                if(mtuSize < MIN_MTU) {
+                if(mtuSize < Connection.MIN_MTU) {
                     // Do not attempt to respond if the MTU is this small
                     return
                 }
-                if(mtuSize > MAX_MTU) mtuSize = MAX_MTU
+                // MTU size will never exceed `Connection.MAX_MTU`
+                mtuSize = minOf(mtuSize, Connection.MAX_MTU)
                 server.addConnection(Connection(
                     address = msg.sender(),
                     server = server,

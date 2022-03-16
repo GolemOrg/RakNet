@@ -10,8 +10,7 @@ import org.golem.raknet.message.protocol.*
 import java.net.InetSocketAddress
 import java.util.concurrent.TimeUnit
 
-const val MIN_MTU: Short = 576
-const val MAX_MTU: Short = 1492
+
 
 class Connection(
     val address: InetSocketAddress,
@@ -20,6 +19,7 @@ class Connection(
     val mtuSize: Short,
     val guid: Long,
 ) {
+
     private val internalsHandler = InternalsHandler(this, context)
     private val worker: NioEventLoopGroup = NioEventLoopGroup()
     private val eventBus = EventBus<ConnectionEvent>()
@@ -94,6 +94,11 @@ class Connection(
         server.removeConnection(this)
         eventBus.dispatch(ConnectionEvent.Disconnected(reason))
         state = ConnectionState.DISCONNECTED
+    }
+
+    companion object {
+        const val MIN_MTU: Short = 576
+        const val MAX_MTU: Short = 1492
     }
 
 }
