@@ -53,7 +53,7 @@ class Connection(
                     clientAddress = this.address,
                     systemIndex = 0,
                     requestTime = packet.time,
-                    time = server.getUptime()
+                    time = server.uptime,
                 ))
             }
             is NewIncomingConnection -> {
@@ -68,11 +68,11 @@ class Connection(
             }
             is ConnectedPing -> internalsHandler.sendInternal(ConnectedPong(
                 pingTime = packet.time,
-                pongTime = server.getUptime()
+                pongTime = server.uptime
             ))
             is ConnectedPong -> {
                 // Compute latency
-                latency = server.getUptime() - packet.pingTime
+                latency = server.uptime - packet.pingTime
                 eventBus.dispatch(ConnectionEvent.LatencyUpdated(latency))
             }
             is DisconnectionNotification -> close(DisconnectionReason.ClientRequested)
@@ -85,7 +85,7 @@ class Connection(
 
     fun send(packet: OnlineMessage, immediate: Boolean = false) = internalsHandler.send(packet, immediate)
 
-    fun ping() = send(ConnectedPing(time = server.getUptime()), true)
+    fun ping() = send(ConnectedPing(time = server.uptime), true)
 
     fun getEventBus() = eventBus
 
