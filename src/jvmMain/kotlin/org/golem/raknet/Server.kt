@@ -32,6 +32,8 @@ class Server(
 
     private val group = NioEventLoopGroup()
     private val startTime: Long = System.currentTimeMillis()
+    val uptime: Long
+        get() = System.currentTimeMillis() - startTime
     private val connections: HashMap<InetSocketAddress, Connection> = HashMap()
 
     private lateinit var future: ChannelFuture
@@ -66,8 +68,6 @@ class Server(
         eventBus.dispatch(ServerEvent.Start)
         return this.future
     }
-
-    fun getUptime(): Long = System.currentTimeMillis() - startTime
 
     fun addConnection(connection: Connection) {
         eventBus.dispatch(ServerEvent.NewConnection(connection))
