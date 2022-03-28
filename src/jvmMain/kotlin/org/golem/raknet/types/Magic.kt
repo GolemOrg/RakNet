@@ -29,9 +29,8 @@ object Magic : Encodable, Decodable {
     private val size get() = bytes.size
 
     private fun verify(bytes: ByteArray): Magic {
-        val magic = Magic
         require(bytes.contentEquals(Magic.bytes)) { "Input bytes must match" }
-        return magic
+        return Magic
     }
 
     override fun encode(buffer: ByteBuf) {
